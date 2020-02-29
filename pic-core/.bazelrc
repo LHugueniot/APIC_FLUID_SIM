@@ -1,0 +1,9 @@
+build --symlink_prefix=bazel-build/
+build --cxxopt='-std=c++17'
+build --cxxopt='-fdiagnostics-color=always'
+build --cxxopt='-Wall'
+build --cxxopt='-Wextra'
+build --cxxopt='-Ofast'
+build --cxxopt='-march=native'
+test --test_output=all --test_summary=detailed
+
