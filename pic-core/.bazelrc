@@ -6,4 +6,3 @@ build --cxxopt='-Wextra'
 build --cxxopt='-Ofast'
 build --cxxopt='-march=native'
 test --test_output=all --test_summary=detailed
-

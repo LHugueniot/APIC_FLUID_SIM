@@ -1,5 +1,8 @@
 #include <catch2.hpp>
+
 #include "pic_core.hpp"
+
+using namespace pic;
 
 TEST_CASE("Linear interpolation", "[linear][interpolation]") 
 {
@@ -180,5 +183,41 @@ TEST_CASE("Transfer Attributes grid 2 particles", "[Transfer][Attributes]")
 		if(particleSim.masses[i] == old_particle_masses[i])
 			std::cout<<i<<std::endl;
 		REQUIRE(particleSim.masses[i] != old_particle_masses[i]);
+	}
+}
+
+TEST_CASE("timeStep", "[Transfer][Attributes]")
+{
+	int nParticles = 10;
+	ParticleAttributes particleSim;
+	randomisedParticleBB(particleSim, nParticles, 
+						 0, 0, 0,
+						 10, 10, 10);
+
+	GridAttributes grid(10, 10, 10, 1);
+
+	for (int i = 0 ; i < nParticles ; i ++)
+	{
+		REQUIRE(particleSim.positions_x[i] > 0);
+		REQUIRE(particleSim.positions_x[i] < 10);
+		REQUIRE(particleSim.positions_y[i] > 0);
+		REQUIRE(particleSim.positions_y[i] < 10);
+		REQUIRE(particleSim.positions_z[i] > 0);
+		REQUIRE(particleSim.positions_z[i] < 10);
+	}
+
+	auto old_particle_masses = particleSim.masses;
+
+		DEBUG();
+
+	for (int i = 0 ; i < 10000 ; i ++)
+	{
+		DEBUG();
+		transferAttributes(particleSim, grid);
+		DEBUG();
+		transferAttributes(grid, particleSim);
+		DEBUG();
+		timeStep(particleSim, 0.1);
+		DEBUG();
 	}
 }

@@ -7,4 +7,4 @@ cc_library(srcs = glob(["src/main.cpp"]),
 
 cc_test(srcs = ["src/linear_interpolation.cpp"],
 	name="linearInterpolation",
-	deps=[":test-main", "//:pic-core"])
+	deps=[":test-main", "//:pic_core"])

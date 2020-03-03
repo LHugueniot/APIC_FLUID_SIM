@@ -7,6 +7,10 @@
 
 #define DEBUG() std::cout<<"BREAK POINT: LINE "<<__LINE__<<" IN "<<__FILE__<<std::endl
 
+
+namespace pic
+{
+
 #define GRAV_Y -9.8
 
 struct ParticleAttributes
@@ -113,6 +117,8 @@ std::array<int, 3> findGridIndex(float x, float y, float z,
 
 float getDiff(float const x0, float const x1, float const x)
 {
+	if ((x1 - x0) == 0)
+		DEBUG();
 	return (x - x0)/(x1 - x0);
 }
 
@@ -328,15 +334,20 @@ void transferAttributes(GridAttributes const & grid, ParticleAttributes & partic
 
 void timeStep(ParticleAttributes & particleSim, float dt)
 {
+	int const nParticles = particleSim.velocities_x.size();
+
 	for (int i = 0 ; i < nParticles ; ++i)
 	{
-		particleSim.velocity_y[i] += GRAV_Y;
+		particleSim.velocities_y[i] += GRAV_Y;
 
 		particleSim.positions_x[i] += particleSim.velocities_x[i] * dt;
 		particleSim.positions_y[i] += particleSim.velocities_y[i] * dt;
 		particleSim.positions_z[i] += particleSim.velocities_z[i] * dt;
 	}
 }
+
+}
+
 /* FUNCTION GRAVEYARD TRASHCAN
 
 std::array<float, 3> cellPos(int cell_i, int cell_j, int cell_k,

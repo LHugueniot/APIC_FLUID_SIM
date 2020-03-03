@@ -14,3 +14,8 @@ pkg_config_repository(
     name = "glew",
     modname="glew"
 )
+
+local_repository(
+    name="pic_core",
+    path="../pic-core",
+)

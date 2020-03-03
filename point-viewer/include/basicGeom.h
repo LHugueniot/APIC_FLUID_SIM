@@ -3,10 +3,26 @@
 
 #include "utilities.h"
 
+//=====================================POINTS======================================================
+
+struct pointData
+{
+	std::vector<float> vertexData;
+
+    GLuint vertexDataSize = 0;
+    GLuint vertexBufferObject = 0;
+    GLuint vertexArrayObject = 0;
+};
+
+std::vector<float> flattenPointCoorAttr(std::vector<float> positions_x, std::vector<float> positions_y, std::vector<float> positions_z);
+void populatePoints(pointData & points, std::vector<float> positions_x, std::vector<float> positions_y,std::vector<float> positions_z);
+void updatePointsVAO(const pointData & points);
+void drawPoints(const pointData & points, GLuint shaderProgram, glm::mat4 cameraMat);
+
+//==========================================GRID===================================================
 
 struct gridData
 {
-    //Container to access all particle related data
     std::vector<float> vertexData;
 
     GLuint vertexDataSize = 0;

@@ -1,10 +1,11 @@
 #include <SDL.h>
+#include <pic_core.hpp>
 
-#include "particleSystem.h"
 #include "basicShader.h"
 #include "basicGeom.h"
 #include "camera.h"
-#include "grid.h"
+
+#define DEBUG() std::cout<<"BREAK POINT: LINE "<<__LINE__<<" IN "<<__FILE__<<std::endl
 
 static std::vector<float> particleData = {
     -1.0f, -1.0f, 0.0f,
@@ -82,6 +83,7 @@ int main()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     SDL_GL_SwapWindow(state.window);
 
+    //Setup Camera
     auto camera = cameraData( windowWidth, windowHeight);
     rotateCamera(camera, glm::radians(-45.f));
     pitchCamera(camera,  glm::radians(-45.f));
@@ -90,14 +92,28 @@ int main()
 
     GLuint my_basicShader = compileBasicShaderProgram();
 
-    auto particleSystem = particleSystemData();
-    //std::vector<float> particleVertexData = generateRandomParticleData(0, 1, 0, 1, 1, 1, 10000);
-    std::vector<float> particleVertexData = createCellGridVertexData(0, 0, 0, 10, 10, 10, 10, 10, 10);
-    populateParticleSystem(particleSystem, particleVertexData);
+    //Create center of world grid plain
+    auto gridPlaine = gridData();
+    std::vector<float> gridPlaineVertexData = generateGridVertexData(1, 5, 5);
+    populateGrid(gridPlaine, gridPlaineVertexData);
 
-    auto grid = gridData();
-    std::vector<float> gridVertexData = generateGridVertexData(1, 5, 5);
-    populateGrid(grid, gridVertexData);
+    //Create particle system
+    auto particleSystem = pic::ParticleAttributes();
+
+    pic::randomisedParticleBB(particleSystem, 10, 0, 0, 0, 10, 10, 10);
+
+    //Setup point drawer
+    pointData points;
+
+    populatePoints(points, 
+        particleSystem.positions_x,
+        particleSystem.positions_y,
+        particleSystem.positions_z);
+
+    //return 0;
+    //Create cell grid
+
+    pic::GridAttributes grid(10, 10, 10, 1);
 
     if (my_basicShader == 0)
     {
@@ -155,12 +171,29 @@ int main()
 
         //randomiseParticleStep(particleSystem);
         //updateParticleSystemVAO(particleSystem);
-        glm::mat4 cameraVP = camera.projectionMat * 
-                              camera.viewMat;
+        glm::mat4 cameraVP = camera.projectionMat * camera.viewMat;
 
-        drawParticleSystem(particleSystem, my_basicShader, cameraVP);
-
-        drawGrid(grid, my_basicShader, cameraVP);
+            DEBUG();
+        pic::transferAttributes(particleSystem, grid);
+            DEBUG();
+        pic::transferAttributes(grid, particleSystem);
+            DEBUG();
+        pic::timeStep(particleSystem, 0.01);
+            DEBUG();
+        std::cout<<points.vertexData.size()<<std::endl;
+        points.vertexData = flattenPointCoorAttr(
+            particleSystem.positions_x,
+            particleSystem.positions_y,
+            particleSystem.positions_z);
+        std::cout<<points.vertexData.size()<<std::endl;
+            DEBUG();
+        updatePointsVAO(points);
+            DEBUG();
+        drawPoints(points, my_basicShader, cameraVP);
+            DEBUG();
+        
+        drawGrid(gridPlaine, my_basicShader, cameraVP);
+        
         SDL_GL_SwapWindow(state.window);
     }
 

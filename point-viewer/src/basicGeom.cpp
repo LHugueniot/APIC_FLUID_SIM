@@ -1,5 +1,71 @@
 #include "basicGeom.h"
 
+//=====================================POINTS======================================================
+
+std::vector<float> flattenPointCoorAttr(
+    std::vector<float> positions_x,
+    std::vector<float> positions_y,
+    std::vector<float> positions_z)
+{
+    auto vertexData = std::vector<float>(positions_x.size() + positions_y.size() + positions_z.size());
+    for (int i = 0 ; i < positions_x.size() ; i++)
+    {
+        auto index_stride = i * 3;
+        vertexData[i] = positions_x[i];
+        vertexData[i + 1] = positions_y[i];
+        vertexData[i + 2] = positions_z[i];
+        std::cout<<"x: "<<vertexData[i]<<" y: "<<vertexData[i + 1]<<" z: "<<vertexData[i + 2]<<std::endl;
+    }
+    return vertexData;
+}
+
+void populatePoints(pointData & points,     
+    std::vector<float> positions_x,
+    std::vector<float> positions_y,
+    std::vector<float> positions_z)
+{
+    points.vertexData =
+    flattenPointCoorAttr(positions_x,
+                        positions_y,
+                        positions_z);
+
+    points.vertexDataSize = points.vertexData.size();
+
+    glGenBuffers(1, &points.vertexBufferObject);
+
+    glBindBuffer(GL_ARRAY_BUFFER, points.vertexBufferObject);
+
+    glBufferData(GL_ARRAY_BUFFER,
+        sizeof(GLfloat)  * points.vertexDataSize,
+        &points.vertexData[0], GL_STATIC_DRAW);
+
+    glGenVertexArrays(1, &points.vertexArrayObject);
+    glBindVertexArray(points.vertexArrayObject);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, points.vertexBufferObject);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+}
+
+void updatePointsVAO(const pointData & points)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, points.vertexBufferObject);
+    glBufferData(GL_ARRAY_BUFFER,
+        sizeof(GLfloat) * points.vertexDataSize,
+        &points.vertexData[0], GL_STATIC_DRAW);
+}
+
+void drawPoints(const pointData & points, GLuint shaderProgram, glm::mat4 cameraMat)
+{
+    GLuint mvpID = glGetUniformLocation(shaderProgram, "MVP");
+    glUniformMatrix4fv(mvpID, 1, GL_FALSE, &cameraMat[0][0]);
+
+    glUseProgram(shaderProgram);
+    glBindVertexArray(points.vertexArrayObject);
+    glDrawArrays(GL_POINTS, 0, points.vertexDataSize/3);
+}
+
+//==========================================GRID===================================================
+
 std::vector<float> generateGridVertexData(float squareSize, uint x_gridSize, uint z_gridSize)
 {
 
@@ -16,7 +82,6 @@ std::vector<float> generateGridVertexData(float squareSize, uint x_gridSize, uin
         vertexData[i + 4] = 0;
         vertexData[i + 5] = 0;
     }
-    std::cout<<"Crash point 1"<<std::endl;
 
     for (uint i = vertexData.size() /2 ; i < vertexData.size() ; i += 6)
     {
@@ -29,7 +94,6 @@ std::vector<float> generateGridVertexData(float squareSize, uint x_gridSize, uin
         vertexData[i + 4] = 0;
         vertexData[i + 5] = row_col * squareSize;
     }
-    std::cout<<"Crash point 2"<<std::endl;
 
     return vertexData;
 }
@@ -64,7 +128,7 @@ void drawGrid(const gridData & grid, GLuint shaderProgram, glm::mat4 cameraMat)
     glBindVertexArray(grid.vertexArrayObject);
     glDrawArrays(GL_LINES, 0, grid.vertexDataSize/3);
 }
-
+ 
 
 static const GLfloat basicTriVertexData[] = {
     -1.0f, -1.0f, 0.0f,
