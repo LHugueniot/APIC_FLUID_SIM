@@ -1,5 +1,5 @@
 cc_library(srcs = glob(["src/*.cpp"]),
-	hdrs = glob(["include/pic_core.hpp"]),
+	hdrs = glob(["include/*.h"]),
 	copts = ["-Iinclude"],
 	strip_include_prefix = "include",
 	visibility=["//visibility:public"],

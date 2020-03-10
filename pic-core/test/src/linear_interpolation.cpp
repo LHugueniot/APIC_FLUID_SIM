@@ -1,6 +1,7 @@
 #include <catch2.hpp>
+#include <cstdlib>
 
-#include "pic_core.hpp"
+#include "picCore.h"
 
 using namespace pic;
 
@@ -188,7 +189,7 @@ TEST_CASE("Transfer Attributes grid 2 particles", "[Transfer][Attributes]")
 
 TEST_CASE("timeStep", "[Transfer][Attributes]")
 {
-	int nParticles = 10;
+	int nParticles = 1;
 	ParticleAttributes particleSim;
 	randomisedParticleBB(particleSim, nParticles, 
 						 0, 0, 0,
@@ -196,19 +197,50 @@ TEST_CASE("timeStep", "[Transfer][Attributes]")
 
 	GridAttributes grid(10, 10, 10, 1);
 
-	for (int i = 0 ; i < nParticles ; i ++)
-	{
-		REQUIRE(particleSim.positions_x[i] > 0);
-		REQUIRE(particleSim.positions_x[i] < 10);
-		REQUIRE(particleSim.positions_y[i] > 0);
-		REQUIRE(particleSim.positions_y[i] < 10);
-		REQUIRE(particleSim.positions_z[i] > 0);
-		REQUIRE(particleSim.positions_z[i] < 10);
-	}
-
 	auto old_particle_masses = particleSim.masses;
 
 		DEBUG();
+
+	auto sphereCollision = 
+	[](double pPos_x, double pPos_y, double pPos_z,
+	   double pVel_x, double pVel_y, double pVel_z)
+	-> std::array<double,3>
+	{
+		//=========================================Vector Funcs=========================================
+
+		//==============================================================================================
+
+		double sCenter_x = 5;
+		double sCenter_y = 5;
+		double sCenter_z = 5;
+
+		double cRadius = 4;
+
+		auto sRef_pPos_x = pPos_x - sCenter_x;
+		auto sRef_pPos_y = pPos_y - sCenter_y;
+		auto sRef_pPos_z = pPos_z - sCenter_z;
+
+		auto sRef_pNewPos_x = sRef_pPos_x + pVel_x;
+		auto sRef_pNewPos_y = sRef_pPos_y + pVel_y;
+		auto sRef_pNewPos_z = sRef_pPos_z + pVel_z;
+
+		//Particle pos to circle center length
+		double p2cLen = length({sRef_pPos_x, sRef_pPos_y, sRef_pPos_z});
+
+		//New particle pos to circle center length
+		double np2cLen = length({sRef_pNewPos_x, sRef_pNewPos_y, sRef_pNewPos_z});
+
+		//Deal with case where particle is leaving circle
+		if(p2cLen < cRadius && cRadius < np2cLen)
+		{
+			auto dx = pVel_x;
+			auto dy = pVel_y;
+			auto dz = pVel_z;
+
+
+		}
+		return 
+	}
 
 	for (int i = 0 ; i < 10000 ; i ++)
 	{
@@ -217,7 +249,7 @@ TEST_CASE("timeStep", "[Transfer][Attributes]")
 		DEBUG();
 		transferAttributes(grid, particleSim);
 		DEBUG();
-		timeStep(particleSim, 0.1);
+		timeStep(particleSim, sphereCollision, 0.1);
 		DEBUG();
 	}
 }
