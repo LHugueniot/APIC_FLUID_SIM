@@ -5,6 +5,8 @@ cc_library(srcs = glob(["src/main.cpp"]),
 	alwayslink = True
 	)
 
-cc_test(srcs = ["src/linear_interpolation.cpp"],
+cc_test(srcs = ["src/linear_interpolation.cpp",
+				"src/testMathUtils.cpp",
+				"src/testPicCore.cpp"],
 	name="linearInterpolation",
 	deps=[":test-main", "//:pic_core"])

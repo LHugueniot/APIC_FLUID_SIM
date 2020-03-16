@@ -4,8 +4,8 @@ namespace pic
 {
 
 void randomisedParticleBB(ParticleAttributes & particleSim,  int nParticles,
-				float bottomCorner_x, float bottomCorner_y, float bottomCorner_z,
-				float topCorner_x, float topCorner_y, float topCorner_z)
+	float bottomCorner_x, float bottomCorner_y, float bottomCorner_z, 
+	float topCorner_x, float topCorner_y, float topCorner_z)
 {
 	particleSim.positions_x.resize(nParticles);
 	particleSim.positions_y.resize(nParticles);
@@ -29,19 +29,15 @@ void randomisedParticleBB(ParticleAttributes & particleSim,  int nParticles,
 	}
 }
 
-std::array<int, 3> findGridIndex(float x, float y, float z, 
-								 float cellLen_x, 
-								 float cellLen_y, 
-								 float cellLen_z)
+std::array<int, 3> findGridIndex(float x, float y, float z, float cellLen_x,
+	float cellLen_y, float cellLen_z)
 {
 	return {floor(x/cellLen_x), floor(y/cellLen_y), floor(z/cellLen_z)};
 }
 
 
-std::array<float, 3> cellSpacePos(float x, float y, float z, 
-								  float cellLen_x, float cellLen_y, 
-								  float cellLen_z, int cell_i,
-								  int cell_j, int cell_k)
+float3 cellSpacePos(float x, float y, float z, float cellLen_x, 
+	float cellLen_y, float cellLen_z, int cell_i, int cell_j, int cell_k)
 {
 
 	float cellPos_x = cell_i * cellLen_x;
@@ -158,10 +154,8 @@ void transferAttributes(GridAttributes const & grid, ParticleAttributes & partic
 		//Get grid index from particle position
 		auto [cell_i, cell_j, cell_k] = findGridIndex(particle_x, particle_y, particle_z,
 													  cellSize, cellSize, cellSize);
-		
-		std::cout<<"cell_i: "<<cell_i<<" cell_j: "<<cell_j<<" cell_k: "<<cell_k<<std::endl;
-		
 
+		std::cout<<"cell_i: "<<cell_i<<" cell_j: "<<cell_j<<" cell_k: "<<cell_k<<std::endl;
 
 		//get corner indices
 		int c000_index = grid.flatten3DIndex(cell_i, cell_j, cell_k);
@@ -176,8 +170,8 @@ void transferAttributes(GridAttributes const & grid, ParticleAttributes & partic
 
 		//Get cell position from grid indices
 		auto [cellSpace_x, cellSpace_y, cellSpace_z] = cellSpacePos(particle_x, particle_y, particle_z, 
-					 												cellSize, cellSize, cellSize,
-					 												cell_i, cell_j, cell_k);
+					 										cellSize, cellSize, cellSize,
+					 										cell_i, cell_j, cell_k);
 
 		particleSim.masses[i] =
 		trilinearInterpolation({grid.masses[c000_index], grid.masses[c100_index],
@@ -210,32 +204,31 @@ void transferAttributes(GridAttributes const & grid, ParticleAttributes & partic
 	}
 }
 
-template<typename CollisionProc>
-void timeStep(ParticleAttributes & particleSim,  CollisionProc cp, float dt)
-{
-	int const nParticles = particleSim.velocities_x.size();
-
-	for (int i = 0 ; i < nParticles ; ++i)
-	{
-
-		std::array<float,3> particlePos = 
-			cp(	particleSim.positions_x[i],
-				particleSim.positions_y[i], 
-				particleSim.positions_z[i],
-				particleSim.velocities_x[i] * dt,
-				(particleSim.velocities_y[i] + GRAV_Y) * dt,
-				particleSim.velocities_z[i] * dt);
-		particleSim.positions_x[i] = particlePos[0];
-		particleSim.positions_y[i] = particlePos[1];
-		particleSim.positions_z[i] = particlePos[2];
-	}
-}
+//template<typename CollisionProc>
+//void timeStep(ParticleAttributes & particleSim,  CollisionProc cp, float dt)
+//{
+//	int const nParticles = particleSim.velocities_x.size();
+//
+//	for (int i = 0 ; i < nParticles ; ++i)
+//	{
+//
+//		std::array<float,3> particlePos = cp(particleSim.positions_x[i],
+//				particleSim.positions_y[i], particleSim.positions_z[i],
+//				particleSim.velocities_x[i] * dt, 
+//				(particleSim.velocities_y[i] + GRAV_Y) * dt,
+//				particleSim.velocities_z[i] * dt);
+//
+//		particleSim.positions_x[i] = particlePos[0];
+//		particleSim.positions_y[i] = particlePos[1];
+//		particleSim.positions_z[i] = particlePos[2];
+//	}
+//}
 
 }
 
 /* FUNCTION GRAVEYARD TRASHCAN
 
-std::array<float, 3> cellPos(int cell_i, int cell_j, int cell_k,
+float3 cellPos(int cell_i, int cell_j, int cell_k,
 							 float cellLen_x, 
 							 float cellLen_y, 
 							 float cellLen_z)
@@ -311,20 +304,20 @@ float trilinearCellInterpolation(float x, float y, float z,
 	// Calculate the 8 cube corner positions
 	float const halfCellSize = cellSize * 0.5f;
 
-	std::array<float, 3> const c000{cellPos_x - halfCellSize, cellPos_y - halfCellSize, cellPos_z - halfCellSize};
-	std::array<float, 3> const c001{cellPos_x - halfCellSize, cellPos_y - halfCellSize, cellPos_z + halfCellSize};
-	std::array<float, 3> const c010{cellPos_x - halfCellSize, cellPos_y + halfCellSize, cellPos_z - halfCellSize};
-	std::array<float, 3> const c011{cellPos_x - halfCellSize, cellPos_y + halfCellSize, cellPos_z + halfCellSize};
-	std::array<float, 3> const c100{cellPos_x + halfCellSize, cellPos_y - halfCellSize, cellPos_z - halfCellSize};
-	std::array<float, 3> const c101{cellPos_x + halfCellSize, cellPos_y - halfCellSize, cellPos_z + halfCellSize};
-	std::array<float, 3> const c110{cellPos_x + halfCellSize, cellPos_y + halfCellSize, cellPos_z - halfCellSize};
-	std::array<float, 3> const c111{cellPos_x + halfCellSize, cellPos_y + halfCellSize, cellPos_z + halfCellSize};
+	float3 const c000{cellPos_x - halfCellSize, cellPos_y - halfCellSize, cellPos_z - halfCellSize};
+	float3 const c001{cellPos_x - halfCellSize, cellPos_y - halfCellSize, cellPos_z + halfCellSize};
+	float3 const c010{cellPos_x - halfCellSize, cellPos_y + halfCellSize, cellPos_z - halfCellSize};
+	float3 const c011{cellPos_x - halfCellSize, cellPos_y + halfCellSize, cellPos_z + halfCellSize};
+	float3 const c100{cellPos_x + halfCellSize, cellPos_y - halfCellSize, cellPos_z - halfCellSize};
+	float3 const c101{cellPos_x + halfCellSize, cellPos_y - halfCellSize, cellPos_z + halfCellSize};
+	float3 const c110{cellPos_x + halfCellSize, cellPos_y + halfCellSize, cellPos_z - halfCellSize};
+	float3 const c111{cellPos_x + halfCellSize, cellPos_y + halfCellSize, cellPos_z + halfCellSize};
 
 	// Util to scale a vec3
-	auto const mul3 = [](auto const& v, float m) -> std::array<float, 3> { return {v[0]*m, v[1]*m, v[2]*m}; };
+	auto const mul3 = [](auto const& v, float m) -> float3 { return {v[0]*m, v[1]*m, v[2]*m}; };
 
 	// Util to add two vec3
-	auto const add3 = [](auto const& a, auto const& b) -> std::array<float, 3> { return {a[0]+b[0], a[1]+b[1], a[2]+b[2]}; };
+	auto const add3 = [](auto const& a, auto const& b) -> float3 { return {a[0]+b[0], a[1]+b[1], a[2]+b[2]}; };
 
 	// Drop the x component from a vec3
 	auto const drop_x = [](auto const& v) -> std::array<float, 2> { return {v[1], v[2]}; };

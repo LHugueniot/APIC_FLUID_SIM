@@ -214,42 +214,53 @@ TEST_CASE("timeStep", "[Transfer][Attributes]")
 		double sCenter_y = 5;
 		double sCenter_z = 5;
 
-		double cRadius = 4;
+		double sphereRadius = 4;
 
-		auto sRef_pPos_x = pPos_x - sCenter_x;
-		auto sRef_pPos_y = pPos_y - sCenter_y;
-		auto sRef_pPos_z = pPos_z - sCenter_z;
+		double t;
 
-		auto sRef_pNewPos_x = sRef_pPos_x + pVel_x;
-		auto sRef_pNewPos_y = sRef_pPos_y + pVel_y;
-		auto sRef_pNewPos_z = sRef_pPos_z + pVel_z;
+		std::array<double,3> newPos = add({pPos_x, pPos_y, pPos_z}, {pVel_x, pVel_y, pVel_z});
 
-		//Particle pos to circle center length
-		double p2cLen = length({sRef_pPos_x, sRef_pPos_y, sRef_pPos_z});
+		auto intersected = intersectRaySphere({pPos_x, pPos_y, pPos_z}, {pVel_x, pVel_y, pVel_z},
+			{sCenter_x, sCenter_y, sCenter_z}, sphereRadius, t, newPos);
 
-		//New particle pos to circle center length
-		double np2cLen = length({sRef_pNewPos_x, sRef_pNewPos_y, sRef_pNewPos_z});
+		//std::cout<<"Intersection result: "<<intersected<<std::endl;
+//
+		//auto sRef_pPos_x = pPos_x - sCenter_x;
+		//auto sRef_pPos_y = pPos_y - sCenter_y;
+		//auto sRef_pPos_z = pPos_z - sCenter_z;
+//
+		//auto sRef_pNewPos_x = sRef_pPos_x + pVel_x;
+		//auto sRef_pNewPos_y = sRef_pPos_y + pVel_y;
+		//auto sRef_pNewPos_z = sRef_pPos_z + pVel_z;
+//
+		////Particle pos to circle center length
+		//double p2cLen = length({sRef_pPos_x, sRef_pPos_y, sRef_pPos_z});
+//
+		////New particle pos to circle center length
+		//double np2cLen = length({sRef_pNewPos_x, sRef_pNewPos_y, sRef_pNewPos_z});
+//
+		//double newPvel_x, newPvel_y, newPvel_z = 0;
+//
+		////Deal with case where particle is leaving circle
+		//if(p2cLen < cRadius && cRadius < np2cLen)
+		//{
+		//	auto dx = pVel_x;
+		//	auto dy = pVel_y;
+		//	auto dz = pVel_z;
+//
+//
+		//}
+		return newPos;
+	};
 
-		//Deal with case where particle is leaving circle
-		if(p2cLen < cRadius && cRadius < np2cLen)
-		{
-			auto dx = pVel_x;
-			auto dy = pVel_y;
-			auto dz = pVel_z;
-
-
-		}
-		return 
-	}
-
-	for (int i = 0 ; i < 10000 ; i ++)
+	for (int i = 0 ; i < 100 ; i ++)
 	{
 		DEBUG();
 		transferAttributes(particleSim, grid);
 		DEBUG();
 		transferAttributes(grid, particleSim);
 		DEBUG();
-		timeStep(particleSim, sphereCollision, 0.1);
+		timeStep(particleSim, sphereCollision, 1);
 		DEBUG();
 	}
 }

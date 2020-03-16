@@ -73,11 +73,30 @@ struct GridAttributes
 std::array<int, 3> findGridIndex(float x, float y, float z, 
 	float cellLen_x, float cellLen_y, float cellLen_z);
 
+std::array<float, 3> cellSpacePos(float x, float y, float z, float cellLen_x, 
+	float cellLen_y, float cellLen_z, int cell_i,int cell_j, int cell_k);
 
 void transferAttributes(ParticleAttributes const & particleSim, GridAttributes & grid);
 void transferAttributes(GridAttributes const & grid, ParticleAttributes & particleSim);
 
 template<typename CollisionProc>
-void timeStep(ParticleAttributes & particleSim,  CollisionProc cp, float dt);
+void timeStep(ParticleAttributes & particleSim,  CollisionProc cp, float dt)
+{
+	int const nParticles = particleSim.velocities_x.size();
+
+	for (int i = 0 ; i < nParticles ; ++i)
+	{
+
+		std::array<double,3> particlePos = cp(particleSim.positions_x[i],
+				particleSim.positions_y[i], particleSim.positions_z[i],
+				particleSim.velocities_x[i] * dt, 
+				(particleSim.velocities_y[i] + GRAV_Y) * dt,
+				particleSim.velocities_z[i] * dt);
+
+		particleSim.positions_x[i] = particlePos[0];
+		particleSim.positions_y[i] = particlePos[1];
+		particleSim.positions_z[i] = particlePos[2];
+	}
+}
 
 }

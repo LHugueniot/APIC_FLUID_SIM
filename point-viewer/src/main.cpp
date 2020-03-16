@@ -1,5 +1,5 @@
 #include <SDL.h>
-#include <pic_core.hpp>
+#include <picCore.h>
 
 #include "basicShader.h"
 #include "basicGeom.h"
@@ -12,6 +12,35 @@ static std::vector<float> particleData = {
      1.0f, -1.0f, 0.0f,
      0.0f,  1.0f, 0.0f
 };
+
+namespace pic{
+
+auto sphereCollision = 
+[](double pPos_x, double pPos_y, double pPos_z,
+   double pVel_x, double pVel_y, double pVel_z)
+-> std::array<double,3>
+{
+    //=========================================Vector Funcs=========================================
+
+    //==============================================================================================
+
+    double sCenter_x = 5;
+    double sCenter_y = 5;
+    double sCenter_z = 5;
+
+    double sphereRadius = 1;
+
+    double t;
+
+    std::array<double,3> newPos = add({pPos_x, pPos_y, pPos_z}, {pVel_x, pVel_y, pVel_z});
+
+    auto intersected = intersectRaySphere({pPos_x, pPos_y, pPos_z}, {pVel_x, pVel_y, pVel_z},
+        {sCenter_x, sCenter_y, sCenter_z}, sphereRadius, t, newPos);
+
+    return newPos;
+};
+
+}
 
 static uint windowWidth = 640;
 static uint windowHeight = 480;
@@ -100,7 +129,10 @@ int main()
     //Create particle system
     auto particleSystem = pic::ParticleAttributes();
 
-    pic::randomisedParticleBB(particleSystem, 10, 0, 0, 0, 10, 10, 10);
+    pic::randomisedParticleBB(particleSystem, 1, 5, 5, 5, 5, 5, 5);
+
+    //Create Bounding box
+
 
     //Setup point drawer
     pointData points;
@@ -173,24 +205,26 @@ int main()
         //updateParticleSystemVAO(particleSystem);
         glm::mat4 cameraVP = camera.projectionMat * camera.viewMat;
 
-            DEBUG();
+            //DEBUG();
         pic::transferAttributes(particleSystem, grid);
-            DEBUG();
+            //DEBUG();
         pic::transferAttributes(grid, particleSystem);
-            DEBUG();
-        pic::timeStep(particleSystem, 0.01);
-            DEBUG();
+            //DEBUG();
+        pic::timeStep(particleSystem, pic::sphereCollision, 0.001);
+            //DEBUG();
+
         std::cout<<points.vertexData.size()<<std::endl;
         points.vertexData = flattenPointCoorAttr(
             particleSystem.positions_x,
             particleSystem.positions_y,
             particleSystem.positions_z);
+
         std::cout<<points.vertexData.size()<<std::endl;
-            DEBUG();
+            //DEBUG();
         updatePointsVAO(points);
-            DEBUG();
+            //DEBUG();
         drawPoints(points, my_basicShader, cameraVP);
-            DEBUG();
+            //DEBUG();
         
         drawGrid(gridPlaine, my_basicShader, cameraVP);
         
