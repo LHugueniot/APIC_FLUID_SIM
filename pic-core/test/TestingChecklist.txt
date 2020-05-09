@@ -1,0 +1,53 @@
+MacGrid:
+
+	cellSpacePos(Vector3d const & worldSpacePos, int const i, int const j, int const k) YES
+	gridSpacePos(Vector3d const & worldSpacePos) YES
+	gridCoord(Vector3d const & worldSpacePos) YES
+	cellCenterPos(int const i, int const j, int const k) YES
+	cellCenterIdx(int const i, int const j, int const k) YES
+	cellCenterIdx(Vector3d const & worldSpacePos) YES
+	getCellCenterVel(Vector3d const &  worldSpacePos) YES
+	cellMinFaceIdx_u(int const i, int const j, int const k) YES
+	cellMinFaceIdx_v(int const i, int const j, int const k) YES
+	cellMinFaceIdx_w(int const i, int const j, int const k) YES
+	cellMaxFaceIdx_u(int const i, int const j, int const k) YES
+	cellMaxFaceIdx_v(int const i, int const j, int const k) YES
+	cellMaxFaceIdx_w(int const i, int const j, int const k) YES
+	cellMinFaceIdcs(int const i, int const j, int const k) YES
+	cellMaxFaceIdcs(int const i, int const j, int const k) YES
+	cellFaceIdcs(int const i, int const j, int const k) YES
+	cellFaceIdcs(Vector3d const & worldSpacePos) YES
+	cellMinFacePos_u(int const i, int const j, int const k) YES
+	cellMinFacePos_v(int const i, int const j, int const k) YES
+	cellMinFacePos_w(int const i, int const j, int const k) YES
+	cellMaxFacePos_u(int const i, int const j, int const k) YES
+	cellMaxFacePos_v(int const i, int const j, int const k) YES
+	cellMaxFacePos_w(int const i, int const j, int const k) YES
+
+MathUtils:
+	double getDiff(double const x, double const x0, double const x1) YES
+	Vector3d getDiff(Vector3d const x, Vector3d const x0, Vector3d const x1) YES
+	double linearInterpolation(double const c0, double const c1, double const z) YES
+	double bilinearInterpolation(tuple4d const attr, Vector2d const pos) YES
+	double bilinearInterpolation(tuple4d const attr, double const y, double const z) YES
+	double trilinearInterpolation(tuple8d const attr, Vector3d const pos) YES
+	double trilinearInterpolation(tuple8d const attr, double const x, double const y, double const z) YES
+	tuple8d getWeights(double const x, double const y, double const z) YES
+	tuple8d getWeights(Vector3d const pos) YES
+	tuple8d getWeights(Vector3d const pos, Vector3d c000pos, Vector3d c111pos) YES
+	Vector3d const project(Vector3d const& v1, Vector3d const& v2) NO
+
+PicCore:
+	
+	tuple3i getClosestNBRCellIdcs(MacGrid const & grid, Vector3d const & worldSpacePos) YES
+	tuple6i getOrderedNBRIdcs(MacGrid const & grid, Vector3d const & worldSpacePos, int i, int j, int k) YES
+	tuple8i getStageredCellFaceNBRIdcs_u(MacGrid const & grid, int min_i, int min_j, int min_k, int max_i, int max_j, int max_k) YES
+	tuple8i getStageredCellFaceNBRIdcs_v(MacGrid const & grid, int min_i, int min_j, int min_k, int max_i, int max_j, int max_k) YES
+	tuple8i getStageredCellFaceNBRIdcs_w(MacGrid const & grid, int min_i, int min_j, int min_k, int max_i, int max_j, int max_k) YES
+	void transferAttributes(MacParticles const & particles, MacGrid & grid) NO
+	void transferAttributes(MacGrid const & grid, MacParticles & particles) NO
+	void applyPressureForces(MacGrid & grid) NO
+	void advectParticles() NO
+	void pressureSolve() NO
+
+	void generateRandParticlesInAABB(MacParticles & particles, int nParticles, double bCorner_x, double bCorner_y, double bCorner_z, double tCorner_x, double tCorner_y, double tCorner_z);

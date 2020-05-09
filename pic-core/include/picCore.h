@@ -1,102 +1,101 @@
-#include "mathUtils.h"
+#pragma once
+#ifndef PIC_CORE_H
+#define PIC_CORE_H
 
+#include "macGrid.h"
+#include "macParticles.h"
 
 namespace pic
 {
 
-#define GRAV_Y -9.8
+static double const GRAV_Y = -9.8f;
 
-struct ParticleAttributes
-{
-	std::vector<float> positions_x;
-	std::vector<float> positions_y;
-	std::vector<float> positions_z;
+//template<MacGrid::FaceDim F, typename T>
+//void cellFaceAttrTransfer(Vector3d const & pos, T const & attr, 
+//	tuple8i cellFaceNBRIdcs, vector<T> & gridAttrVector){
+//
+//}
 
-	std::vector<float> velocities_x;
-	std::vector<float> velocities_y;
-	std::vector<float> velocities_z;
+void generateRandParticlesInAABB(MacParticles & particles, int nParticles,
+	double bCorner_x, double bCorner_y, double bCorner_z,	//top corner coords
+	double tCorner_x, double tCorner_y, double tCorner_z);	//bottom corner coords
 
-	std::vector<float> masses;
-};
+//void cellFaceVelTransfer_u(Vector3d const & pos, Vector3d const & vel, tuple8i const & cellUFaceNBRIdcs, MacGrid & grid);
+//void cellFaceVelTransfer_v(Vector3d const & pos, Vector3d const & vel, tuple8i const & cellVFaceNBRIdcs, MacGrid & grid);
+//void cellFaceVelTransfer_w(Vector3d const & pos, Vector3d const & vel, tuple8i const & cellWFaceNBRIdcs, MacGrid & grid);
 
-void randomisedParticleBB(ParticleAttributes & particleSim,  int nParticles,
-	float bottomCorner_x, float bottomCorner_y, float bottomCorner_z,
-	float topCorner_x, float topCorner_y, float topCorner_z);
+tuple3i getClosestNBRCellIdcs(MacGrid const & grid, 
+	Vector3d const & worldSpacePos, int i, int j, int k);
 
-struct GridAttributes 
-{
-	struct Constants
-	{
-		Constants(int dimension_x, int dimension_y, int dimension_z, float cellSize):
-			dimension_x(dimension_x + 1),
-			dimension_y(dimension_y + 1),
-			dimension_z(dimension_z + 1),
-			cellSize(cellSize),
-			attribSize(this->dimension_x 
-					 * this->dimension_y 
-					 * this->dimension_z)
-			{}
+tuple6i getOrderedNBRIdcs(MacGrid const & grid, 
+	Vector3d const & worldSpacePos, int i, int j, int k);
 
-		int dimension_x;
-		int dimension_y;
-		int dimension_z;
+tuple8i getStageredCellFaceNBRIdcs_u(MacGrid const & grid,
+	int min_i, int min_j, int min_k,
+	int max_i, int max_j, int max_k);
+tuple8i getStageredCellFaceNBRIdcs_v(MacGrid const & grid,
+	int min_i, int min_j, int min_k,
+	int max_i, int max_j, int max_k);
+tuple8i getStageredCellFaceNBRIdcs_w(MacGrid const & grid,
+	int min_i, int min_j, int min_k,
+	int max_i, int max_j, int max_k);
 
-		float cellSize;
+void transferAttributes(MacParticles const & particles, MacGrid & grid);
+void transferAttributes(MacGrid const & grid, MacParticles & particles);
 
-		int attribSize;
-	};
+void applyPressureForces(MacGrid & grid){
+	for ( size_t i = 0 ; i < grid.cellNum_i ; i++)
+		for ( size_t j = 0 ; j < grid.cellNum_j ; j++)
+			for ( size_t k = 0 ; k < grid.cellNum_k ; k++){
 
-	GridAttributes(int dimension_x, int dimension_y, int dimension_z, float cellSize):
-		constants(dimension_x, dimension_y, dimension_z, cellSize),
-		velocities_x(constants.attribSize, 0),
-		velocities_y(constants.attribSize, 0),
-		velocities_z(constants.attribSize, 0),
-		masses(constants.attribSize, 0)
-	{}
+				//Calculate Divergence of each cell
+				auto [minFaceIdx_u, minFaceIdx_v, minFaceIdx_w, 
+					maxFaceIdx_u, maxFaceIdx_v, maxFaceIdx_w] =
+				grid.cellFaceIdcs(i, j, k);
 
-	Constants const constants;
-
-	std::vector<float> velocities_x;
-	std::vector<float> velocities_y;
-	std::vector<float> velocities_z;
-
-	std::vector<float> masses;
-
-	int flatten3DIndex(int i, int  j, int k) const
-	{
-		return (i * (constants.dimension_x * constants.dimension_y)
-			+ j * constants.dimension_x + k);
-	}
-};
-
-
-std::array<int, 3> findGridIndex(float x, float y, float z, 
-	float cellLen_x, float cellLen_y, float cellLen_z);
-
-std::array<float, 3> cellSpacePos(float x, float y, float z, float cellLen_x, 
-	float cellLen_y, float cellLen_z, int cell_i,int cell_j, int cell_k);
-
-void transferAttributes(ParticleAttributes const & particleSim, GridAttributes & grid);
-void transferAttributes(GridAttributes const & grid, ParticleAttributes & particleSim);
-
-template<typename CollisionProc>
-void timeStep(ParticleAttributes & particleSim,  CollisionProc cp, float dt)
-{
-	int const nParticles = particleSim.velocities_x.size();
-
-	for (int i = 0 ; i < nParticles ; ++i)
-	{
-
-		std::array<double,3> particlePos = cp(particleSim.positions_x[i],
-				particleSim.positions_y[i], particleSim.positions_z[i],
-				particleSim.velocities_x[i] * dt, 
-				(particleSim.velocities_y[i] + GRAV_Y) * dt,
-				particleSim.velocities_z[i] * dt);
-
-		particleSim.positions_x[i] = particlePos[0];
-		particleSim.positions_y[i] = particlePos[1];
-		particleSim.positions_z[i] = particlePos[2];
-	}
+				double heightDiff = 1 / grid.cellSize;
+				auto idx = grid.cellCenterIdx(i, j, k);
+				grid.cellCenterDivergence[idx] = 
+				 (grid.cellFaceVel_u[minFaceIdx_u] - grid.cellFaceVel_u[maxFaceIdx_u]
+				+ grid.cellFaceVel_v[minFaceIdx_v] - grid.cellFaceVel_v[maxFaceIdx_v]
+				+ grid.cellFaceVel_w[minFaceIdx_w] - grid.cellFaceVel_w[maxFaceIdx_w])
+				* heightDiff;
+			}
 }
 
+void advectParticles()
+{
+
 }
+
+void pressureSolve()
+{
+
+
+
+}
+
+
+
+//template<typename CollisionProc>
+//void timeStep(ParticleAttributes & particleSim,  CollisionProc cp, double dt)
+//{
+//	int const nParticles = particleSim.velocities_x.size();
+//
+//	for (int i = 0 ; i < nParticles ; ++i)
+//	{
+//
+//		Vector3d particlePos = cp({particleSim.positions_x[i],
+//				particleSim.positions_y[i], particleSim.positions_z[i]},
+//				{particleSim.velocities_x[i] * dt, 
+//				(particleSim.velocities_y[i] + GRAV_Y) * dt,
+//				particleSim.velocities_z[i] * dt});
+//
+//		particleSim.positions_x[i] = particlePos[0];
+//		particleSim.positions_y[i] = particlePos[1];
+//		particleSim.positions_z[i] = particlePos[2];
+//	}
+//}
+
+}
+#endif /* PIC_CORE_H */

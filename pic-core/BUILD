@@ -4,4 +4,4 @@ cc_library(srcs = glob(["src/*.cpp"]),
 	strip_include_prefix = "include",
 	visibility=["//visibility:public"],
 	name="pic_core",
-	deps=[])
+	deps=["@eigen3"])

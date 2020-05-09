@@ -1,0 +1,11 @@
+load("//:custom_rules/pkg-config_rules/pkg-config.bzl","pkg_config_repository")
+
+pkg_config_repository(
+    name = "eigen3",
+    modname="eigen3"
+)
+
+local_repository(
+    name="pic_core",
+    path="pic-core",
+)

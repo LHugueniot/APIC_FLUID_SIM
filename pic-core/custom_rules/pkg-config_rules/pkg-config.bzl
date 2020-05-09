@@ -6,6 +6,7 @@ _DEFAULT_STATIC = False
 
 
 def _run_cmd(context, command_line):
+    print(command_line)
     if command_line:
       result = context.execute(command_line)
       if result.return_code:
@@ -22,9 +23,10 @@ def _run_cmd(context, command_line):
           ))
     # Split the result at each ' -' to determine switches, then repair the flags
     # by prepending the '-'. This is more robust to switches like '-framework X'
+    print(" {}".format(result.stdout.strip()) )
     return [
         "-{}".format(x) 
-        for x in " {}".format(result.stdout.strip()).split(" -") if x
+        for x in " {}".format(result.stdout.strip()).split(" -") if x and not x.isspace()
     ]
 
 
