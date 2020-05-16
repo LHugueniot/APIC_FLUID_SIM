@@ -1,3 +1,4 @@
+#load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("//:custom_rules/pkg-config_rules/pkg-config.bzl","pkg_config_repository")
 
 pkg_config_repository(
@@ -8,4 +9,9 @@ pkg_config_repository(
 local_repository(
     name="pic_core",
     path="pic-core",
+)
+
+pkg_config_repository(
+    name = "suitesparse",
+    modname="suitesparse"
 )

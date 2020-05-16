@@ -1,13 +1,13 @@
 cc_library(srcs = glob(["src/*.cpp"]),
 	hdrs = glob(["include/*.h"]),
 	strip_include_prefix = "include",
-	name="pv-lib",
+	name="pv_lib",
 	deps=["@gl", "@glew", "@sdl2", "@pic_core"])
 
 #print (glob(["src/*.cpp"]))
 
 cc_binary(name="pv",
-	deps=["//:pv-lib"])
+	deps=["//:pv_lib"])
 
 #cc_library(
 #    name = "pic-core",

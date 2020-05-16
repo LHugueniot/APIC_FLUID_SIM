@@ -1,6 +1,6 @@
 #include "common.h"
 
-#include "mathUtils.h"
+#include "MathUtils.h"
 
 using namespace pic;
 

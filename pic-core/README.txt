@@ -19,13 +19,15 @@ void FluidSolver::update(float step) {
     frame++;
 }
 
-while(substep < timestep){
+time = 0
 
-	//Find the maximum timestep such that particles dont advance further than one cell so 
-	substep = calculateSubstep()
+while(time < timestep){
 
 	//Transfer attributes from particles to grid
 	transferParticleToGrid()
+
+	//Find the maximum timestep such that particles dont advance further than one cell so 
+	substep = calculateSubstep()
 
 	//Change grid values based on
 	advectFluid(substep){
@@ -60,6 +62,8 @@ while(substep < timestep){
 
 	//Transfer attributes from grid to particles
 	transferGridToParticle()
+
+	time += substep
 
 	particleKinematics()
 }

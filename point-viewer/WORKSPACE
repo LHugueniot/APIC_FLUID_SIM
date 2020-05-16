@@ -15,6 +15,16 @@ pkg_config_repository(
     modname="glew"
 )
 
+pkg_config_repository(
+    name = "eigen3",
+    modname="eigen3"
+)
+
+pkg_config_repository(
+    name = "suitesparse",
+    modname="suitesparse"
+)
+
 local_repository(
     name="pic_core",
     path="../pic-core",

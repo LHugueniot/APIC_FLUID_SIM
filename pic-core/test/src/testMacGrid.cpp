@@ -1,5 +1,5 @@
 #include "common.h"
-#include "macGrid.h"
+#include "MacGrid.h"
 
 using namespace pic;
 
@@ -111,14 +111,48 @@ TEST_CASE("MacGrid Position conversions", "[MacGrid][gridCoord][cellSpacePos][gr
 //	for(auto accessNum : cellCenterAccessed) REQUIRE(accessNum == 1);
 //
 //}
+//
+TEST_CASE("MacGrid getCellCenterVel", "[MacGrid][getCellCenterVel]")
+{
+	MacGrid my_grid(Vector3d(0,0,0), 10, 10, 10, 1.f);
+	Vector3d pWorldSpacePos{1.5f, 1.5f, 1.5f}; 
 
-//TEST_CASE("MacGrid getCellCenterVel", "[MacGrid][getCellCenterVel]")
-//{
-//	MacGrid my_grid(Vector3d(0,0,0), 1, 1, 1, 1.f);
-//	my_grid.cellCenterVel[my_grid.cellCenterIdx(Vector3d{.5f, .5f, .5f})] = Vector3d{10000, 3, 214908};
-//	Vector3d worldSpacePos{.75f, .75f, .75f}; 
-//	REQUIRE3d(my_grid.getCellCenterVel(worldSpacePos) , Vector3d(10000, 3, 214908));
-//}
+	Vector3d pVel{10000, 3, 214908};
+	auto [min_u, min_v, min_w, max_u, max_v, max_w] = my_grid.cellFaceIdcs(1,1,1);
+	my_grid.cellFaceVel_u[min_u] = 10000.f;
+	my_grid.cellFaceVel_u[max_u] = 10000.f;
+
+	my_grid.cellFaceVel_v[min_v] = 2.f;
+	my_grid.cellFaceVel_v[max_v] = 4.f;
+
+
+	my_grid.cellFaceVel_w[min_w] = 214900.f;
+	my_grid.cellFaceVel_w[max_w] = 214916.f;
+
+	//std::cout<<"cellFaceIdcs\n"<<min_u<<"\n"<<max_u<<"\n"<<min_v<<"\n"<<max_v<<"\n"<<min_w<<"\n"<<max_w<<"\n";
+
+	REQUIRE3d(my_grid.cellCenterVel(pWorldSpacePos) , Vector3d(10000, 3, 214908));
+}
+
+
+TEST_CASE("MacGrid isBoundaryCell", "[MacGrid][isBoundaryCell]")
+{
+	MacGrid my_grid(Vector3d(0,0,0), 5, 5, 5, 1.f);
+
+	tp start;
+	ns end;
+
+	start = tnow();
+	for ( size_t i = 0 ; i < my_grid.cellFaceNum_i; i++)
+		for ( size_t j = 0 ; j < my_grid.cellFaceNum_j; j++)
+			for ( size_t k = 0 ; k < my_grid.cellFaceNum_k; k++){
+
+				auto isBoundaryCell = my_grid.isBoundaryCell(i,j,k);
+				//REQUIRE(isBoundaryCell == true);
+			}
+    end = elapsed(start);
+	std::cout<<"isBoundaryCell took: "<<end<<std::endl;
+}
 
 TEST_CASE("MacGrid CellFace indexing", "[MacGrid][cellMinFaceIdx_u][cellMinFaceIdx_v][cellMinFaceIdx_w]\
 	[cellMaxFaceIdx_u][cellMaxFaceIdx_v][cellMaxFaceIdx_w][cellMinFaceIdcs][cellMaxFaceIdcs][cellFaceIdcs]") 
@@ -128,9 +162,9 @@ TEST_CASE("MacGrid CellFace indexing", "[MacGrid][cellMinFaceIdx_u][cellMinFaceI
 	std::vector<int> cellFaceAccessed_v(my_grid.cellFaceVel_v.size(), 0);
 	std::vector<int> cellFaceAccessed_w(my_grid.cellFaceVel_w.size(), 0);
 
-	for ( size_t u = 0 ; u < my_grid.cellNum_i + 1; u++)
-		for ( size_t v = 0 ; v < my_grid.cellNum_j + 1; v++)
-			for ( size_t w = 0 ; w < my_grid.cellNum_k + 1; w++){
+	for ( size_t u = 0 ; u < my_grid.cellFaceNum_i; u++)
+		for ( size_t v = 0 ; v < my_grid.cellFaceNum_j; v++)
+			for ( size_t w = 0 ; w < my_grid.cellFaceNum_k; w++){
 				auto minidx_u = my_grid.cellMinFaceIdx_u(u, v, w);
 				auto minidx_v = my_grid.cellMinFaceIdx_v(u, v, w);
 				auto minidx_w = my_grid.cellMinFaceIdx_w(u, v, w);
