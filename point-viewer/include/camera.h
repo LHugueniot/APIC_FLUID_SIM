@@ -3,7 +3,6 @@
 
 #include "Utilities.h"
 
-
 struct Camera{
 
 	enum Actions{
@@ -16,8 +15,8 @@ struct Camera{
 	};
 
 	Camera(float _windowWidth, float _windowHeight, 
-		float _fieldOfView = 1.57079632679f, //In rads 
-		float _far = 1.f, float _near = 100.f,
+		float _fov = TO_RAD(50), //In rads 
+		float _far = 200.f, float _near = 1.f,
 		float _rotationSpeed = 0.05f,
 		float _zoomSpeed = 0.05f);
 	
@@ -26,7 +25,7 @@ struct Camera{
 	Matrix4f projMat;
 
 	//Perspective Parameters
-	float windowWidth, windowHeight, fieldOfView, far, near;
+	float windowWidth, windowHeight, fov, far, near;
 
 	//Trackball parameters
 	float yaw, pitch, zoom;
@@ -39,7 +38,7 @@ struct Camera{
 void setProjMat(Eigen::Matrix4f & projMat,
 	float windowWidth, 
     float windowHeight, 
-    float fieldOfView, 
+    float fov, 
     float far, float near);
 void updateProjMat(Camera & camera);
 

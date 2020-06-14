@@ -23,8 +23,13 @@ cc_test(
 	deps = [":test_main"])
 
 cc_test(
-	name = "MacParticles",
-	srcs = ["src/testMacParticles.cpp"],
+	name = "Collisions",
+	srcs = ["src/testCollisions.cpp"],
+	deps = [":test_main"])
+
+cc_test(
+	name = "Particles",
+	srcs = ["src/testParticles.cpp"],
 	deps = [":test_main"])
 
 cc_test(
@@ -33,7 +38,9 @@ cc_test(
 	deps = [":test_main"])
 
 test_suite(
-	name = "all",
+	name = "All",
 	tests = ["MathUtils",
-			 "testMacGrid",
-			 "testPicCore"])
+			 "MacGrid",
+			 "PicCore",
+			 "Particles",
+			 "PicStreamIO"])

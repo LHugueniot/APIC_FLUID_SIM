@@ -1,11 +1,11 @@
 #include "Camera.h"
 
 Camera::Camera(float _windowWidth, float _windowHeight, 
-    float _fieldOfView, float _far, float _near,
+    float _fov, float _far, float _near,
     float _rotationSpeed, float _zoomSpeed) :
         windowWidth(_windowWidth),
         windowHeight(_windowHeight),
-        fieldOfView(_fieldOfView),
+        fov(_fov),
         far(_far), near(_near),
         rotationSpeed(_rotationSpeed),
         zoomSpeed(_zoomSpeed),
@@ -16,15 +16,16 @@ Camera::Camera(float _windowWidth, float _windowHeight,
     yaw = 0.f;
     pitch = 0.f;
     zoom = 1.f;
-    updateProjMat(*this);
+
+    setProjMat(projMat, windowWidth, windowHeight, fov, far, near);
 }
 
 void setProjMat(Eigen::Matrix4f & projMat, float windowWidth, 
-    float windowHeight, float fieldOfView, float far, float near){
+    float windowHeight, float fov, float far, float near){
 
     projMat.setIdentity();
     float aspect = float(windowWidth)/float(windowHeight);
-    float theta = fieldOfView*0.5;
+    float theta = fov * .5f;
     float range = far - near;
     float invtan = 1./tan(theta);
 
@@ -40,7 +41,7 @@ void updateProjMat(Camera & camera){
     setProjMat(camera.projMat, 
         camera.windowWidth,
         camera.windowHeight,
-        camera.fieldOfView,
+        camera.fov,
         camera.far,
         camera.near);
 }
@@ -101,19 +102,14 @@ void setLookAt(Matrix4f & viewMat, Vector3f const & position, Vector3f const & t
     viewMat(3,3) = 1.0f;
 }
 
-void updateLookAt(Camera & camera){
-    setLookAt(camera.viewMat, camera.eye, camera.target, Vector3f(0, 1, 0));
-}
-
 void updateCamera(Camera& camera){
 
     Matrix3f R_yaw; 
     R_yaw = AngleAxisf(camera.yaw, Vector3f::UnitY());
     Matrix3f R_pitch;
-    R_pitch = AngleAxisf(camera.yaw, Vector3f::UnitX());
-
+    R_pitch = AngleAxisf(camera.pitch, Vector3f::UnitX());
     camera.transformedEye = (R_yaw * R_pitch * (camera.zoom * (camera.eye - camera.target))) + camera.target;
-    updateLookAt(camera);
+    setLookAt(camera.viewMat, camera.transformedEye, camera.target, Vector3f(0, 1, 0));
 }
 
 /*

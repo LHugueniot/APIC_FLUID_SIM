@@ -2,7 +2,7 @@
 #ifndef EXPORTER_H
 #define EXPORTER_H
 
-#include "MacParticles.h"
+#include "Particles.h"
 
 #include <iostream>
 #include <fstream> 

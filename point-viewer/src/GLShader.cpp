@@ -1,27 +1,13 @@
-#include "BasicShader.h"
+#include "GLShader.h"
 
-static const char* vertexSource =
-"#version 330\n"
-"in vec3 position;\n"
-"uniform mat4 MVP;\n"
-"void main() {\n"
-"  gl_Position = MVP * vec4(position, 1.0);\n"
-"}\n";
+GLuint compileShaderProgram(std::string const & vertexSource, std::string const & fragmentSource){
 
-static const char *fragmentSource =
-"#version 330\n"
-"out vec4 frag_colour;\n"
-"void main() {\n"
-"  frag_colour = vec4(1.0, 1.0, 1.0, 1.0);\n"
-"}\n";
-
-GLuint compileBasicShaderProgram()
-{
 	// Create an empty vertex shader handle
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
+	const GLchar *vertexSource_c_str = (const GLchar *)vertexSource.c_str();
 	// Send the vertex shader source code to GL
-	glShaderSource(vertexShader, 1, &vertexSource, 0);
+	glShaderSource(vertexShader, 1, &vertexSource_c_str, 0);
 
 	// Compile the vertex shader
 	glCompileShader(vertexShader);
@@ -30,8 +16,8 @@ GLuint compileBasicShaderProgram()
 
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
 
-	if(isCompiled == GL_FALSE)
-	{
+	if(isCompiled == GL_FALSE){
+		std::cout<<"Vertex shader failed to compile."<<std::endl;
 		GLint maxLength = 0;
 		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
 
@@ -51,16 +37,18 @@ GLuint compileBasicShaderProgram()
 
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	
+	const GLchar * fragmentSource_c_str = (const GLchar *)fragmentSource.c_str();
+
 	// Send the fragment shader source code to GL
-	glShaderSource(fragmentShader, 1, &fragmentSource, 0);
+	glShaderSource(fragmentShader, 1, &fragmentSource_c_str, 0);
 	
 	// Compile the fragment shader
 	glCompileShader(fragmentShader);
 	
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
 
-	if (isCompiled == GL_FALSE)
-	{
+	if (isCompiled == GL_FALSE){
+		std::cout<<"Fragment shader failed to compile."<<std::endl;
 		GLint maxLength = 0;
 		glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
 
@@ -96,13 +84,13 @@ GLuint compileBasicShaderProgram()
 	// Note the different functions here: glGetProgram* instead of glGetShader*.
 	GLint isLinked = 0;
 	glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
-	if (isLinked == GL_FALSE)
-	{
+	if (isLinked == GL_FALSE){
+		std::cout<<"Shader failed to link."<<std::endl;
 		GLint maxLength = 0;
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
 	
 		// The maxLength includes the NULL character
-		std::vector<GLchar> infoLog(maxLength);
+		char infoLog[maxLength];
 		glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 		
 		// We don't need the program anymore.
@@ -112,6 +100,7 @@ GLuint compileBasicShaderProgram()
 		glDeleteShader(fragmentShader);
 	
 		// Use the infoLog as you see fit.
+		std::cout<<infoLog<<std::endl;
 		
 		// In this simple program, we'll just leave
 		return 0;
@@ -122,22 +111,3 @@ GLuint compileBasicShaderProgram()
 
 	return program;
 }
-
-
-//static const GLchar *vertexSource =
-//	"#version 330\n"
-//    "attribute highp vec4 posAttr;\n"
-//    "attribute lowp vec4 colAttr;\n"
-//    "varying lowp vec4 col;\n"
-//    "uniform highp mat4 matrix;\n"
-//    "void main() {\n"
-//    "   col = colAttr;\n"
-//    "   gl_Position = matrix * posAttr;\n"
-//    "}\n";
-//
-//static const char *fragmentSource =
-//	"#version 330\n"
-//    "varying lowp vec4 col;\n"
-//    "void main() {\n"
-//    "   gl_FragColor = col;\n"
-//    "}\n";

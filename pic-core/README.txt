@@ -3,44 +3,23 @@ A survey on different computational particle in cell methods.
 
 Main loop psudocode:
 
-void FluidSolver::update(float step) {
-    projectVelocitiesToGrid();
-    gravitySolve(step);
-    enforceBoundary();
-    pressureSolve(step);
-    enforceBoundary();
-    extrapolateVelocity();
-    enforceBoundary();
-    transferVelocitiesToParticles();
-    updateParticlePositions(step);
-    resolveCollisions();
-    updateCells();
 
-    frame++;
-}
+//Other half of the matrix equation
+createLaplacianMatrix()
 
-time = 0
+picStep(){
 
-while(time < timestep){
-
-	//Transfer attributes from particles to grid
-	transferParticleToGrid()
-
-	//Find the maximum timestep such that particles dont advance further than one cell so 
-	substep = calculateSubstep()
-
-	//Change grid values based on
-	advectFluid(substep){
-		
-		//This is solved by APIC?
-		applyConvectionForces(substep)
-
+	step = 0
+	
+	while(step < timestep){
+	
+		//Transfer attributes from particles to grid
+		transferParticleToGrid()
+	
+	
 		//Apply Gravity
 		applyExternalForces(substep)
-
-		//Maybe apply shearing forces
-		viscocitySolve(substep)
-
+	
 		//Solve pressure equation
 		applyPressureForces(substep){
 			//Linear system we need to solve:
@@ -48,25 +27,27 @@ while(time < timestep){
 			// Where Lmat is the laplacian matrix of neighbours
 			// Pmat is the pressure vector
 			// Dvec is the divergence vector
-
+	
 			//One half of the matrix equation
 			calculateDivergenceMat()
-
-			//Other half of the matrix equation
-			calculateLaplacianMatrix()
-
+	
 			//Solve for pressure
 			solvePressure()
 		}
+	
+		//Transfer attributes from grid to particles
+		transferGridToParticle()
+
+		//Find the maximum timestep such that particles dont advance further than one cell so 
+		substep = calculateSubstep()
+	
+		step += substep
+	
+		particleKinematics()
 	}
 
-	//Transfer attributes from grid to particles
-	transferGridToParticle()
-
-	time += substep
-
-	particleKinematics()
 }
+
 
 Code snippets:
 

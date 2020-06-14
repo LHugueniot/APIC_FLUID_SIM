@@ -4,6 +4,19 @@
 
 using namespace pic;
 
+TEST_CASE("is nan", "[isnan]")
+{
+	REQUIRE(std::isnan(-0) == false);
+}
+
+
+TEST_CASE("int to uint", "[uint_to_int]"){
+	unsigned int a = 1;
+	int b = 0;
+	unsigned int c = -1;
+	REQUIRE(std::isnan(-0) == false);
+}
+
 
 TEST_CASE("getDiff")
 {

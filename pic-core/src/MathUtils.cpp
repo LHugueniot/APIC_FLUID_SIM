@@ -19,6 +19,20 @@ double getDiff(double const x, double const x0, double const x1){
 Vector3d getDiff(Vector3d const x, Vector3d const x0, Vector3d const x1){
 	auto v0 = (x - x0);
 	auto v1 = (x1 - x0);
+	DEBUG_VAR(x);
+	DEBUG_VAR(x0);
+	DEBUG_VAR(x1);
+	DEBUG_VAR(v0);
+	DEBUG_VAR(v1);
+	assert(x1[0] > x0[0]);
+	assert(x1[1] > x0[1]);
+	assert(x1[2] > x0[2]);
+	assert(v1[0] > 0);
+	assert(v1[1] > 0);
+	assert(v1[2] > 0);
+	assert(x[0] >= x0[0]);
+	assert(x[1] >= x0[1]);
+	assert(x[2] >= x0[2]);
 	return {v0[0]/v1[0], v0[1]/v1[1], v0[2]/v1[2]};
 }
 
@@ -58,6 +72,12 @@ double trilinearInterpolation(tuple8d const & attr, Vector3d const & pos){
 
 //Must be in 0 < pos < 1
 inline  tuple8d __getWeights(double const x, double const y, double const z){
+	DEBUG_VAR(x);
+	DEBUG_VAR(y);
+	DEBUG_VAR(z);
+	assert((1 > x) && (x >= 0));
+	assert((1 > y) && (y >= 0));
+	assert((1 > z) && (z >= 0));
 	double w000 = (1.f - z) * (1.f - y) * (1.f - x);
 	double w100 = x * (1.f - y) * (1.f - z);
 	double w001 = (1.f - x) * (1.f - y) * z;
@@ -70,18 +90,45 @@ inline  tuple8d __getWeights(double const x, double const y, double const z){
 	return {w000, w100, w001, w101, w010, w110, w011, w111};
 }
 
-
 tuple8d getWeights(double const x, double const y, double const z){
 	return __getWeights(x ,y ,z);
 }
-tuple8d getWeights(Vector3d const pos){
+tuple8d getWeights(Vector3d const & pos){
 	return __getWeights(pos[0], pos[1], pos[2]);
 }
-
-
-tuple8d getWeights(Vector3d const worldSpacePos, Vector3d c000Pos, Vector3d c111Pos){
+tuple8d getWeights(Vector3d const & worldSpacePos, Vector3d const & c000Pos, Vector3d const & c111Pos){
 	return getWeights(getDiff(worldSpacePos, c000Pos, c111Pos));
 }
+
+inline tuple8d __getDistWeights(Vector3d const & pos){
+	//DEBUG_VAR(x);
+	//DEBUG_VAR(y);
+	//DEBUG_VAR(z);
+	//assert((1 > x) && (x >= 0));
+	//assert((1 > y) && (y >= 0));
+	//assert((1 > z) && (z >= 0));
+	double w000 = (pos - Vector3d(0,0,0)).norm();
+	double w100 = (pos - Vector3d(1,0,0)).norm();
+	double w001 = (pos - Vector3d(0,0,1)).norm();
+	double w101 = (pos - Vector3d(1,0,1)).norm();
+	double w010 = (pos - Vector3d(0,1,0)).norm();
+	double w110 = (pos - Vector3d(1,1,0)).norm();
+	double w011 = (pos - Vector3d(0,1,1)).norm();
+	double w111 = (pos - Vector3d(1,1,1)).norm();
+	//std::cout<<"\nw000: "<<w000<<"\nw100: "<<w100<<"\nw001: "<<w001<<"\nw101: "<<w101<<"\nw010: "<<w010<<"\nw110: "<<w110<<"\nw011: "<<w011<<"\nw111: "<<w111<<std::endl;
+	return {w000, w100, w001, w101, w010, w110, w011, w111};
+}
+
+
+tuple8d getDistWeights(Vector3d const & pos){
+	return __getDistWeights(pos);
+}
+
+tuple8d getDistWeights(Vector3d const & worldSpacePos, Vector3d const & c000Pos, Vector3d const & c111Pos){
+	return __getDistWeights(getDiff(worldSpacePos, c000Pos, c111Pos));
+}
+
+
 
 Vector3d const project(Vector3d const& v1, Vector3d const& v2){ 
 	return v1 * (v1.dot(v2) / v1.norm());

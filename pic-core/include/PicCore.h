@@ -3,64 +3,106 @@
 #define PIC_CORE_H
 
 #include "MacGrid.h"
-#include "MacParticles.h"
+#include "Particles.h"
+#include "Collisions.h"
 
 namespace pic
 {
+
+
+//=====================================HELPER FUNCTIONS========================================
+
+std::vector<double> AABBRandomParticles(Vector3d const & fieldC000, 
+	Vector3d const & fieldC111, uint particleSystemSize);
+
+std::vector<double> AABCubeUniformParticles(Vector3d const & fieldC000, 
+	Vector3d const & fieldC111, double interParticleDistance);
+
+tuple3i getClosestNBRCellIdcs(MacGrid const & grid, 
+	Vector3d const & worldSpacePos, int i, int j, int k);
+
+tuple6i getCellNBRIdcs(int i, int j, int k);
+
+tuple6i getLocalNBRIdcs(MacGrid const & grid, 
+	Vector3d const & worldSpacePos, int i, int j, int k);
+
+//Get cell face Indices
+template<FaceDim D>
+tuple8i getStageredCellFaceNBRIdcs(MacGrid const & grid, 
+	int min_i, int min_j, int min_k, 
+	int max_i, int max_j, int max_k){
+
+	return {grid.cellFaceIdx<D>(min_i, min_j, min_k), grid.cellFaceIdx<D>(max_i, min_j, min_k),
+			grid.cellFaceIdx<D>(min_i, min_j, max_k), grid.cellFaceIdx<D>(max_i, min_j, max_k),
+			grid.cellFaceIdx<D>(min_i, max_j, min_k), grid.cellFaceIdx<D>(max_i, max_j, min_k),
+			grid.cellFaceIdx<D>(min_i, max_j, max_k), grid.cellFaceIdx<D>(max_i, max_j, max_k)};
+}
+
+tuple8i getStageredCellFaceNBRIdcs_u(MacGrid const & grid,
+	int i, int min_j, int min_k, int max_j, int max_k);
+
+tuple8i getStageredCellFaceNBRIdcs_v(MacGrid const & grid,
+	int j, int min_i, int min_k, int max_i, int max_k);
+
+tuple8i getStageredCellFaceNBRIdcs_w(MacGrid const & grid,
+	int k, int min_i, int min_j, int max_i, int max_j);
+
+void setDefaultCellStates(MacGrid & grid);
+
+void setCellStates(MacGrid & grid, 
+				   std::vector<tuple3i> & cellCoords, 
+				   std::vector<CellState> & cellCenterStates);
+
+
+//=============================================================================================
+//=====================================FLUID SIM FUNCTIONS=====================================
+//=============================================================================================
+
+double calculateSubStep(MacGrid const & grid, double timeStep);
+
+void enforceBoundaryVelocities(MacGrid & grid);
+void enforceBoundaryPressure(MacGrid & grid);
+void enforceBoundary(MacGrid & grid);
+void extrapolateBoundaryVelocities(MacGrid & grid);
+
+void applyExternalForces(MacGrid & grid, double timeStep);
+
+void initializeLaplacianNBRMat(MacGrid & grid);
+
+void initializeCellCenterDivergence(MacGrid & grid, double timeStep);
+void applyPressureForces(MacGrid & grid, double timeStep);
+void updateParticles(Particles & particles, double subStep);
+
+//=============================================================================================
+//=====================================PIC FUNCTIONS===========================================
+//=============================================================================================
+
+void transferAttributes(Particles const & particles, MacGrid & grid);
+void transferAttributes(MacGrid const & grid, Particles & particles);
+void advanceStep(Particles & particles, MacGrid & grid, double timeStep);
+
+//=============================================================================================
+//=====================================FLIP FUNCTIONS==========================================
+//=============================================================================================
+
+void transferAttributes(Particles const & particles, FlipMacGrid & grid);
+void transferAttributes(FlipMacGrid const & grid, Particles & particles);
+void advanceStep(Particles & particles, FlipMacGrid & grid, double timeStep);
+
+//=============================================================================================
+//=====================================FLIP FUNCTIONS==========================================
+//=============================================================================================
+
+void transferAttributes(AffineParticles const & particles, MacGrid & grid);
+void transferAttributes(MacGrid const & grid, AffineParticles & particles);
+void advanceStep(Particles & particles, FlipMacGrid & grid, double timeStep);
+
 
 //template<MacGrid::FaceDim F, typename T>
 //void cellFaceAttrTransfer(Vector3d const & pos, T const & attr, 
 //	tuple8i cellFaceNBRIdcs, vector<T> & gridAttrVector){
 //
 //}
-
-void generateRandParticlesInAABB(MacParticles & particles, int nParticles,
-	double bCorner_x, double bCorner_y, double bCorner_z,	//top corner coords
-	double tCorner_x, double tCorner_y, double tCorner_z);	//bottom corner coords
-
-//void cellFaceVelTransfer_u(Vector3d const & pos, Vector3d const & vel, tuple8i const & cellUFaceNBRIdcs, MacGrid & grid);
-//void cellFaceVelTransfer_v(Vector3d const & pos, Vector3d const & vel, tuple8i const & cellVFaceNBRIdcs, MacGrid & grid);
-//void cellFaceVelTransfer_w(Vector3d const & pos, Vector3d const & vel, tuple8i const & cellWFaceNBRIdcs, MacGrid & grid);
-
-tuple3i getClosestNBRCellIdcs(MacGrid const & grid, 
-	Vector3d const & worldSpacePos, int i, int j, int k);
-
-tuple6i getOrderedNBRIdcs(MacGrid const & grid, 
-	Vector3d const & worldSpacePos, int i, int j, int k);
-
-tuple8i getStageredCellFaceNBRIdcs_u(MacGrid const & grid,
-	int min_i, int min_j, int min_k,
-	int max_i, int max_j, int max_k);
-tuple8i getStageredCellFaceNBRIdcs_v(MacGrid const & grid,
-	int min_i, int min_j, int min_k,
-	int max_i, int max_j, int max_k);
-tuple8i getStageredCellFaceNBRIdcs_w(MacGrid const & grid,
-	int min_i, int min_j, int min_k,
-	int max_i, int max_j, int max_k);
-
-void transferAttributes(MacParticles const & particles, MacGrid & grid);
-void transferAttributes(MacGrid const & grid, MacParticles & particles);
-
-double calculateSubStep(MacGrid const & grid, double timeStep);
-
-void applyExternalForces(MacGrid & grid, double subStep);
-
-void initializeLaplacianNBRMat(MacGrid & grid);
-void initializeCellCenterDivergence(MacGrid & grid);
-void applyPressureForces(MacGrid & grid, double subStep);
-
-void advectParticles()
-{
-
-}
-
-void pressureSolve()
-{
-
-
-
-}
-
 
 
 //template<typename CollisionProc>

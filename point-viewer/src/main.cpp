@@ -1,11 +1,14 @@
 #include <SDL.h>
 #include <PicCore.h>
 
-#include "BasicShader.h"
-#include "BasicPoints.h"
-#include "BasicGrid.h"
+#include "MonoColourGLShader.h"
+#include "MultiColourGLShader.h"
+#include "PressureGLShader.h"
+#include "PointsGLData.h"
+#include "PlaneGLData.h"
+#include "MacGridGLData.h"
 #include "Camera.h"
-
+#include "GLError.h"
 
 static std::vector<float> particleData = {
     -1.0f, -1.0f, 0.0f,
@@ -14,8 +17,8 @@ static std::vector<float> particleData = {
 };
 
 using namespace pic;
-static uint windowWidth = 640;
-static uint windowHeight = 480;
+static uint windowWidth = 1920;
+static uint windowHeight = 1080;
 //static const double TO_RADS = 3.141592654 / 180.0;
 
 struct SDL_state
@@ -70,8 +73,9 @@ SDL_state setupSDL()
     //SDL_GL_Create_
 }
 
-int main()
-{
+int main(){
+
+    //=====================================OpenGL/SDL SETUP=====================================
     auto state = setupSDL();
 
     if (GLEW_OK != glewInit())
@@ -80,37 +84,88 @@ int main()
         exit(1);
     }
 
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     SDL_GL_SwapWindow(state.window);
 
     //Setup Camera
     auto camera = Camera(windowWidth, windowHeight);
+
     rotateCamera(camera, TO_RAD(-45.f));
     pitchCamera(camera,  TO_RAD(-45.f));
 
     updateCamera(camera);
 
-    GLuint pointShader = compileBasicShaderProgram();
-    if (pointShader == 0){
-        std::cout<<"Shader failed to compile."<<std::endl;
+    GLuint monoColourShader = compileMonoColourShaderProgram();
+    if (monoColourShader == 0){
+        std::cout<<"Mono Colour Shader failed to compile."<<std::endl;
         return 1;
     }
 
-    //Create center of world grid plain
-    std::vector<double> gridPlainVertexData;
-    generateGridVertexData(gridPlainVertexData, 1, 5, 5);
-    GridGLData gridPlain(gridPlainVertexData);
+    GLuint multiColourShader = compileMultiColourShaderProgram();
+    if (multiColourShader == 0){
+        std::cout<<"Multi Colour Shader failed to compile."<<std::endl;
+        return 1;
+    }
 
-    initGridVAO(gridPlain);
-    updateGridVAO(gridPlain);
-    //Setup point drawer
-    PointGLData points;
+    GLuint pressureShader = compilePressureShaderProgram();
+    if (pressureShader == 0){
+        std::cout<<"Pressure Shader failed to compile."<<std::endl;
+        return 1;
+    }
+
+    //=====================================PICSIM SETUP=========================================
+
+    //Setup pic sim
+    pic::MacGrid grid(Vector3d(0,0,0), 20, 20, 20, 1.f);
+    //pic::FlipMacGrid grid(Vector3d(0,0,0), 20, 20, 20, 1.f);
+    setDefaultCellStates(grid);
+    //initializeLaplacianNBRMat(grid);
+    //
+    //std::vector<double> particlePositions = pic::AABCubeUniformParticles(
+    //    Vector3d(7.5, 7.5, 7.5 ), Vector3d(12.5, 12.5, 12.5 ), 0.2);
+    std::vector<double> particlePositions = pic::AABCubeUniformParticles(
+        Vector3d(4, 4, 4), Vector3d(16, 16, 16), .5f);
+
+    //std::vector<double> particlePositions = pic::AABCubeUniformParticles(Vector3d(2.5 , 7 ,2.5 ), 2, 64);
+    //std::vector<double> particlePositions{2, 8 ,2};
+    std::vector<double> particleVelocities(particlePositions.size(), 0);
+
+    //for(uint i = 0 ; i < particleVelocities.size()/3 ; i++)
+    //    particleVelocities[i * 3 + 1] = -1;
+    pic::Particles particles(1.f, particlePositions, particleVelocities);
+    std::cout<<"particles.num: "<<particles.num<<std::endl;
+    //throw 1;
+
+    //=====================================OPENGL DATA SETUP====================================
+
+    MacGridGLData MGdata(&grid, &monoColourShader, &pressureShader, 0.1f);
+    initMacGridVAO(MGdata);
+
+    double timeStep = 1.f/24.f;
+
+    //Setup point viewer
+    PointGLData points(&particles.positions, &monoColourShader);
+    initPointsVAO(points);
+
+    //Create center of world grid plain
+    std::vector<float> gridPlainVertexData;
+    //generateTile(gridPlainVertexData);
+    //generateLine(gridPlainVertexData);
+    generatePlaneVertexData(gridPlainVertexData, 1, 6, 6);
+    PlaneGLData gridPlain(&gridPlainVertexData, &monoColourShader);
+    initPlaneVAO(gridPlain);
+
+    //=====================================MAIN LOOP============================================
 
     //initPointsVAO(point);
     bool quit = false;
     while(!quit)
     {
+        check_gl_error();
         SDL_Event event;
         if (SDL_PollEvent(&event) != 0){
             switch (event.type){
@@ -132,12 +187,36 @@ int main()
                         case SDLK_DOWN:
                             moveCamera(camera, Camera::ORBIT_DOWN);
                             break;
+                        case SDLK_SPACE:
+                            pic::advanceStep(particles, grid, timeStep);
+                            updatePointsVAO(points);
+                            break;
+                        case SDLK_f:
+                            MGdata.showCellFaceVels = !MGdata.showCellFaceVels;
+                            break;
+                        case SDLK_a:
+                            MGdata.showCellEdges = !MGdata.showCellEdges;
+                            break;
+                        case SDLK_s:
+                            MGdata.showBoundary = !MGdata.showBoundary;
+                            break;
+                        case SDLK_d:
+                            MGdata.showPressures = !MGdata.showPressures;
+                            break;
                     }
-                    std::cout<< "Key press detected"<<std::endl;
+                    break;
+                case SDL_MOUSEWHEEL:
+                    if(event.wheel.y < 0){ // scroll up
+                        moveCamera(camera, Camera::ZOOM_IN);
+                    }
+                    else if(event.wheel.y > 0){ // scroll down
+                        moveCamera(camera, Camera::ZOOM_OUT);
+                    }
+                    //std::cout<< "Key press detected"<<std::endl;
                     break;
         
                 case SDL_KEYUP:
-                    std::cout<< "Key release detected"<<std::endl;
+                    //std::cout<< "Key release detected"<<std::endl;
                     break;
 
             }
@@ -146,7 +225,7 @@ int main()
             }
         }
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.f);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         updateCamera(camera);
@@ -155,10 +234,15 @@ int main()
         //updateParticleSystemVAO(particleSystem);
         Matrix4f cameraVP = camera.projMat * camera.viewMat;
 
-        //updatePointsVAO(points);
-        //drawPoints(points, pointShader, cameraVP);
-        drawGrid(gridPlain, pointShader, cameraVP);
-        
+        drawPoints(points, cameraVP);
+
+        updatePlaneVAO(gridPlain);
+        drawPlane(gridPlain, cameraVP);
+
+        updateCellFaceVelVAO(MGdata);
+        updatePressureColoursVAO(MGdata);
+        drawMacGrid(MGdata, cameraVP);
+
         SDL_GL_SwapWindow(state.window);
     }
 

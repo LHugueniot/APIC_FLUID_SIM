@@ -1,3 +1,23 @@
+void setDefaultCellStates(MacGrid & grid);
+void setCellStates(MacGrid & grid, std::vector<tuple3i> & cellCoords, std::vector<MacGrid::CellState> & cellCenterStates);
+void transferAttributes(Particles const & particles, MacGrid & grid);
+void transferAttributes(MacGrid const & grid, Particles & particles);
+void applyExternalForces(MacGrid & grid, double timeStep);
+void initializeLaplacianNBRMat(MacGrid & grid);
+void initializeCellCenterDivergence(MacGrid & grid, double timeStep);
+void applyPressureForces(MacGrid & grid, double timeStep);
+void cIsBound(MacGrid & grid, int i, int j, int k);
+void extrapolateVels(MacGrid & grid);
+void enforceBoundaryVelocities(MacGrid & grid);
+void enforceBoundaryPressure(MacGrid & grid);
+void enforceBoundary(MacGrid & grid);
+void updateParticles(Particles & particles, double subStep);
+void collisionBasedParticleUpdate(Particles & particles, MacGrid & grid, double subStep);
+void advanceStep(Particles & particles, MacGrid & grid, double timeStep);
+void initializeLaplacianNBRMat(MacGrid & grid);
+void applyPressureForces(MacGrid & grid, double subStep);
+void transferAttributes(MacGrid const & grid, Particles & particles);
+
 MacGrid:
 
 	cellSpacePos(Vector3d const & worldSpacePos, int const i, int const j, int const k) YES
@@ -7,23 +27,30 @@ MacGrid:
 	cellCenterIdx(int const i, int const j, int const k) YES
 	cellCenterIdx(Vector3d const & worldSpacePos) YES
 	getCellCenterVel(Vector3d const &  worldSpacePos) YES
-	cellMinFaceIdx_u(int const i, int const j, int const k) YES
-	cellMinFaceIdx_v(int const i, int const j, int const k) YES
-	cellMinFaceIdx_w(int const i, int const j, int const k) YES
-	cellMaxFaceIdx_u(int const i, int const j, int const k) YES
-	cellMaxFaceIdx_v(int const i, int const j, int const k) YES
-	cellMaxFaceIdx_w(int const i, int const j, int const k) YES
+	cellFaceIdx<minU>(int const i, int const j, int const k) YES
+	cellFaceIdx<minV>(int const i, int const j, int const k) YES
+	cellFaceIdx<minW>(int const i, int const j, int const k) YES
+	cellFaceIdx<maxU>(int const i, int const j, int const k) YES
+	cellFaceIdx<maxV>(int const i, int const j, int const k) YES
+	cellFaceIdx<maxW>(int const i, int const j, int const k) YES
 	cellMinFaceIdcs(int const i, int const j, int const k) YES
 	cellMaxFaceIdcs(int const i, int const j, int const k) YES
 	cellFaceIdcs(int const i, int const j, int const k) YES
 	cellFaceIdcs(Vector3d const & worldSpacePos) YES
-	cellMinFacePos_u(int const i, int const j, int const k) YES
-	cellMinFacePos_v(int const i, int const j, int const k) YES
-	cellMinFacePos_w(int const i, int const j, int const k) YES
-	cellMaxFacePos_u(int const i, int const j, int const k) YES
-	cellMaxFacePos_v(int const i, int const j, int const k) YES
-	cellMaxFacePos_w(int const i, int const j, int const k) YES
 
+	isBoundaryCell(int i, int j, int k) YES
+	cellIsOnBounds(int i, int j, int k) YES
+	cellIsOutOfBounds(int i, int j, int k) YES
+	cellIsInBounds(int i, int j, int k) YES
+	isCellInGrid_i(int i) YES
+	isCellInGrid_j(int j) YES
+	isCellInGrid_k(int k) YES
+	isMaxBoundaryCell_i(int i) YES
+	isMinBoundaryCell_i(int i) YES
+	isMaxBoundaryCell_j(int j) YES
+	isMinBoundaryCell_j(int j) YES
+	isMaxBoundaryCell_k(int k) YES
+	isMinBoundaryCell_k(int k) YES
 MathUtils:
 	double getDiff(double const x, double const x0, double const x1) YES
 	Vector3d getDiff(Vector3d const x, Vector3d const x0, Vector3d const x1) YES
@@ -40,14 +67,14 @@ MathUtils:
 PicCore:
 	
 	tuple3i getClosestNBRCellIdcs(MacGrid const & grid, Vector3d const & worldSpacePos) YES
-	tuple6i getOrderedNBRIdcs(MacGrid const & grid, Vector3d const & worldSpacePos, int i, int j, int k) YES
+	tuple6i getLocalNBRIdcs(MacGrid const & grid, Vector3d const & worldSpacePos, int i, int j, int k) YES
 	tuple8i getStageredCellFaceNBRIdcs_u(MacGrid const & grid, int min_i, int min_j, int min_k, int max_i, int max_j, int max_k) YES
 	tuple8i getStageredCellFaceNBRIdcs_v(MacGrid const & grid, int min_i, int min_j, int min_k, int max_i, int max_j, int max_k) YES
 	tuple8i getStageredCellFaceNBRIdcs_w(MacGrid const & grid, int min_i, int min_j, int min_k, int max_i, int max_j, int max_k) YES
-	void transferAttributes(MacParticles const & particles, MacGrid & grid) NO
-	void transferAttributes(MacGrid const & grid, MacParticles & particles) NO
+	void transferAttributes(Particles const & particles, MacGrid & grid) NO
+	void transferAttributes(MacGrid const & grid, Particles & particles) NO
 	void applyPressureForces(MacGrid & grid) NO
 	void advectParticles() NO
 	void pressureSolve() NO
 
-	void generateRandParticlesInAABB(MacParticles & particles, int nParticles, double bCorner_x, double bCorner_y, double bCorner_z, double tCorner_x, double tCorner_y, double tCorner_z);
+	void generateRandParticlesInAABB(Particles & particles, int nParticles, double bCorner_x, double bCorner_y, double bCorner_z, double tCorner_x, double tCorner_y, double tCorner_z);
