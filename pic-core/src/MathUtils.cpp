@@ -1,7 +1,6 @@
 #include "MathUtils.h"
 
-namespace pic
-{
+namespace pic{
 
 void printVec3(std::array<double, 3> v){
 	std::cout<<"x: "<<std::setprecision(22)<<v[0]
@@ -128,7 +127,9 @@ tuple8d getDistWeights(Vector3d const & worldSpacePos, Vector3d const & c000Pos,
 	return __getDistWeights(getDiff(worldSpacePos, c000Pos, c111Pos));
 }
 
-
+//std::array<Vector3d, 8> getGradientWeight(){
+//
+//}
 
 Vector3d const project(Vector3d const& v1, Vector3d const& v2){ 
 	return v1 * (v1.dot(v2) / v1.norm());

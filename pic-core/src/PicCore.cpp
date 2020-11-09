@@ -1,7 +1,6 @@
 #include "PicCore.h"
 
-namespace pic
-{
+namespace pic{
 
 //=============================================================================================
 //=====================================HELPER FUNCTIONS========================================
@@ -127,6 +126,32 @@ tuple8i getStageredCellFaceNBRIdcs_w(MacGrid const & grid,
 			grid.cellFaceIdx<maxW>(min_i, max_j, k), grid.cellFaceIdx<maxW>(max_i, max_j, k)};
 }
 
+inline std::array<Vector3d, 8> getStageredCellFacePos_u(MacGrid const & grid,
+	int i, int min_j, int min_k, int max_j, int max_k){
+
+	return {grid.cellFacePos<minU>(i, min_j, min_k), grid.cellFacePos<maxU>(i, min_j, min_k),
+			grid.cellFacePos<minU>(i, min_j, max_k), grid.cellFacePos<maxU>(i, min_j, max_k),
+			grid.cellFacePos<minU>(i, max_j, min_k), grid.cellFacePos<maxU>(i, max_j, min_k),
+			grid.cellFacePos<minU>(i, max_j, max_k), grid.cellFacePos<maxU>(i, max_j, max_k)};
+}
+
+inline std::array<Vector3d, 8> getStageredCellFacePos_v(MacGrid const & grid,
+	int j, int min_i, int min_k, int max_i, int max_k){
+
+	return {grid.cellFacePos<minV>(min_i, j, min_k), grid.cellFacePos<minV>(max_i, j, min_k),
+			grid.cellFacePos<minV>(min_i, j, max_k), grid.cellFacePos<minV>(max_i, j, max_k),
+			grid.cellFacePos<maxV>(min_i, j, min_k), grid.cellFacePos<maxV>(max_i, j, min_k),
+			grid.cellFacePos<maxV>(min_i, j, max_k), grid.cellFacePos<maxV>(max_i, j, max_k)};
+}
+
+inline std::array<Vector3d, 8> getStageredCellFacePos_w(MacGrid const & grid,
+	int k, int min_i, int min_j, int max_i, int max_j){
+
+	return {grid.cellFacePos<minW>(min_i, min_j, k), grid.cellFacePos<minW>(max_i, min_j, k), 
+			grid.cellFacePos<maxW>(min_i, min_j, k), grid.cellFacePos<maxW>(max_i, min_j, k),
+			grid.cellFacePos<minW>(min_i, max_j, k), grid.cellFacePos<minW>(max_i, max_j, k),
+			grid.cellFacePos<maxW>(min_i, max_j, k), grid.cellFacePos<maxW>(max_i, max_j, k)};
+}
 
 void setDefaultCellStates(MacGrid & grid){
 
@@ -171,244 +196,10 @@ void applyExternalForces(MacGrid & grid, double timeStep){
 				//if( (grid.getCellState(i,j,k) == LIQUID) && grid.isValidFace<minV>(i, j, k))
 }
 
-
-void initializeLaplacianNBRMat(MacGrid & grid){
-//
-//	for ( uint i = 0 ; i < grid.cellNum_i ; i++)
-//		for ( uint j = 0 ; j < grid.cellNum_j ; j++)
-//			for ( uint k = 0 ; k < grid.cellNum_k ; k++){
-//				auto cellCenterIdx = grid.cellCenterIdx(i, j, k);
-//				int totalValidNeighbours = 0;
-//
-//				DEBUG_ASS(cellCenterIdx < grid.laplacianSparseNBR.cols()  
-//					   && cellCenterIdx < grid.laplacianSparseNBR.rows(),
-//					   "Cell "
-//					   + std::to_string(i) 
-//					   + ", "
-//					   + std::to_string(j)
-//					   + ", "
-//					   + std::to_string(k)
-//					   + " is out of bounds.\n");
-//
-//				//if(grid.getCellState(i, j, k) != LIQUID){
-//				//	grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterIdx) = 0;
-//				//	continue;
-//				//}
-//				if(grid.cellIsInBounds(i - 1, j, k))
-//					if(!grid.isSolidCell(i - 1, j, k)){
-//						auto cellCenterMinIdx_i = grid.cellCenterIdx(i - 1, j, k);
-//						grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMinIdx_i) = 1;
-//						grid.laplacianSparseNBR.coeffRef(cellCenterMinIdx_i, cellCenterIdx) = 1;
-//						totalValidNeighbours += 1;
-//					}
-//
-//				if(grid.cellIsInBounds(i + 1, j, k))
-//					if(!grid.isSolidCell(i + 1, j, k)){
-//						auto cellCenterMaxIdx_i = grid.cellCenterIdx(i + 1, j, k);
-//						grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMaxIdx_i) = 1;
-//						grid.laplacianSparseNBR.coeffRef(cellCenterMaxIdx_i, cellCenterIdx) = 1;
-//						totalValidNeighbours += 1;
-//					}
-//
-//				if(grid.cellIsInBounds(i, j - 1, k))
-//					if(!grid.isSolidCell(i, j - 1, k)){
-//						auto cellCenterMinIdx_j = grid.cellCenterIdx(i, j - 1, k);
-//						grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMinIdx_j) = 1;
-//						grid.laplacianSparseNBR.coeffRef(cellCenterMinIdx_j, cellCenterIdx) = 1;
-//						totalValidNeighbours += 1;
-//					}
-//
-//				if(grid.cellIsInBounds(i, j + 1, k))
-//					if(!grid.isSolidCell(i, j + 1, k)){
-//						auto cellCenterMaxIdx_j = grid.cellCenterIdx(i, j + 1, k);
-//						grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMaxIdx_j) = 1;
-//						grid.laplacianSparseNBR.coeffRef(cellCenterMaxIdx_j, cellCenterIdx) = 1;
-//						totalValidNeighbours += 1;
-//					}
-//
-//				if(grid.cellIsInBounds(i, j, k - 1))
-//					if(!grid.isSolidCell(i, j, k - 1)){
-//						auto cellCenterMinIdx_k = grid.cellCenterIdx(i, j, k - 1);
-//						grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMinIdx_k) = 1;
-//						grid.laplacianSparseNBR.coeffRef(cellCenterMinIdx_k, cellCenterIdx) = 1;
-//						totalValidNeighbours += 1.f;
-//					}
-//
-//				if(grid.cellIsInBounds(i, j, k + 1))
-//					if(!grid.isSolidCell(i, j, k + 1)){
-//						auto cellCenterMaxIdx_k = grid.cellCenterIdx(i, j, k + 1);
-//						grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMaxIdx_k) = 1;
-//						grid.laplacianSparseNBR.coeffRef(cellCenterMaxIdx_k, cellCenterIdx) = 1;
-//						totalValidNeighbours += 1;
-//					}
-//
-//				grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterIdx) = -totalValidNeighbours;
-//			}
-//
-//	//grid.cg = new CholmodSupernodalLLT<SparseMatrix<double>>(grid.laplacianSparseNBR);
-//	DEBUG_VAR(&grid.cg);
-//	//if(grid.cg != nullptr){
-//	//	std::cout<<"Deleting previous solver."<<std::endl;
-//	//	delete grid.cg;
-//	//}
-//	//grid.cg = new ConjugateGradient<SparseMatrix<double>, 
-//	//Eigen::Lower, Eigen::IncompleteCholesky<double>>(grid.laplacianSparseNBR);
-//	//grid.cg.compute(grid.laplacianSparseNBR);
-//	DEBUG();
-//	grid.cg.compute(grid.laplacianSparseNBR);
-//	DEBUG();
-//
-//    if(!grid.laplacianSparseNBR.isApprox(grid.laplacianSparseNBR.transpose())){
-//        throw std::runtime_error("grid.laplacianSparseNBR not symetrical.");
-//    }
-//    else if(grid.cg.info() == Eigen::NumericalIssue){
-//    	throw std::runtime_error("Possibly non semi-positive definitie matrix!");
-//    }
-//	//std::cout<<grid.laplacianSparseNBR<<std::endl;
-//	//grid.cg.compute(grid.laplacianSparseNBR);
-}
-
-void initializeCellCenterDivergence(MacGrid & grid, double timeStep){
-
-/*
-	//DEBUG();
-	grid.laplacianSparseNBR.setZero();
-	grid.cellCenterDivergence.setZero();
-
-	double invTimeStep = 1.f/timeStep;
-
-	double scale = timeStep/(double)grid.cellSize;
-	std::cout<<"SCALE: "<<scale<<std::endl;
-	for ( uint i = 0 ; i < grid.cellNum_i - 0 ; i++)
-		for ( uint j = 0 ; j < grid.cellNum_j - 0 ; j++)
-			for ( uint k = 0 ; k < grid.cellNum_k - 0 ; k++){
-				DEBUG();
-
-				int totalValidNeighbours = 0;
-
-				auto cellCenterIdx = grid.cellCenterIdx(i, j, k);
-				if(grid.cellCenterState.at(cellCenterIdx) != LIQUID)
-					continue;
-
-				//Calculate Divergence of each cell
-				auto [minFaceIdx_u, minFaceIdx_v, minFaceIdx_w,
-					maxFaceIdx_u, maxFaceIdx_v, maxFaceIdx_w] =
-					grid.cellFaceIdcs(i, j, k);
-
-				DEBUG();
-
-
-					if(!grid.isSolidCell(i - 1, j, k) && grid.isCellInGrid_i(i - 1)){
-						totalValidNeighbours += 1;
-						if(grid.getCellState(i - 1, j, k) == LIQUID){
-							auto cellCenterMinIdx_i = grid.cellCenterIdx(i - 1, j, k);
-							grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMinIdx_i) = -scale;
-						}
-					}
-				DEBUG();
-
-					if(!grid.isSolidCell(i + 1, j, k) && grid.isCellInGrid_i(i + 1)){
-						totalValidNeighbours += 1;
-						if(grid.getCellState(i + 1, j, k) == LIQUID){
-							auto cellCenterMaxIdx_i = grid.cellCenterIdx(i + 1, j, k);
-							grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMaxIdx_i) = -scale;
-							//grid.laplacianSparseNBR.coeffRef(cellCenterMaxIdx_i, cellCenterIdx) = -scale;
-						}
-					}
-
-				DEBUG();
-
-					if(!grid.isSolidCell(i, j - 1, k) && grid.isCellInGrid_j(j - 1)){
-						totalValidNeighbours += 1;
-						if(grid.getCellState(i, j - 1, k) == LIQUID){
-							auto cellCenterMinIdx_j = grid.cellCenterIdx(i, j - 1, k);
-							grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMinIdx_j) = -scale;
-							//grid.laplacianSparseNBR.coeffRef(cellCenterMinIdx_j, cellCenterIdx) = -scale;
-						}
-					}
-				DEBUG();
-
-					if(!grid.isSolidCell(i, j + 1, k) && grid.isCellInGrid_j(j + 1)){
-						totalValidNeighbours += 1;
-						if(grid.getCellState(i, j + 1, k) == LIQUID){
-							auto cellCenterMaxIdx_j = grid.cellCenterIdx(i, j + 1, k);
-							grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMaxIdx_j) = -scale;
-							//grid.laplacianSparseNBR.coeffRef(cellCenterMaxIdx_j, cellCenterIdx) = -scale;
-						}
-					}
-				DEBUG();
-
-					if(!grid.isSolidCell(i, j, k - 1) && grid.isCellInGrid_k(k - 1)){
-						totalValidNeighbours += 1;
-						if(grid.getCellState(i, j, k - 1) == LIQUID){
-							auto cellCenterMinIdx_k = grid.cellCenterIdx(i, j, k - 1);
-							grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMinIdx_k) = -scale;
-							//grid.laplacianSparseNBR.coeffRef(cellCenterMinIdx_k, cellCenterIdx) = -scale;
-						}
-					}
-				DEBUG();
-
-					if(!grid.isSolidCell(i, j, k + 1) && grid.isCellInGrid_j(k + 1)){
-						totalValidNeighbours += 1;
-						if(grid.getCellState(i, j, k + 1) == LIQUID){
-							auto cellCenterMaxIdx_k = grid.cellCenterIdx(i, j, k + 1);
-							grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterMaxIdx_k) = -scale;
-							//grid.laplacianSparseNBR.coeffRef(cellCenterMaxIdx_k, cellCenterIdx) = -scale;
-						}
-					}
-				//DEBUG();
-
-				grid.laplacianSparseNBR.coeffRef(cellCenterIdx, cellCenterIdx) = totalValidNeighbours * scale;
-
-
-				double div = 
-					-(grid.cellFaceVel_u.at(maxFaceIdx_u) - grid.cellFaceVel_u.at(minFaceIdx_u))/grid.cellSize +
-					-(grid.cellFaceVel_v.at(maxFaceIdx_v) - grid.cellFaceVel_v.at(minFaceIdx_v))/grid.cellSize +
-					-(grid.cellFaceVel_w.at(maxFaceIdx_w) - grid.cellFaceVel_w.at(minFaceIdx_w))/grid.cellSize;
-
-				if(i == 0 || grid.isSolidCell(i - 1, j, k))
-					div -= grid.cellFaceVel_u.at(minFaceIdx_u)/grid.cellSize;
-
-				if(i == grid.cellNum_i - 1 || grid.isSolidCell(i + 1, j, k))
-					div += grid.cellFaceVel_u.at(maxFaceIdx_u)/grid.cellSize;
-
-				if(j == 0 || grid.isSolidCell(i, j - 1, k))
-					div -= grid.cellFaceVel_v.at(minFaceIdx_v)/grid.cellSize;
-
-				if(j == grid.cellNum_j - 1 || grid.isSolidCell(i, j + 1, k))
-					div += grid.cellFaceVel_v.at(maxFaceIdx_v)/grid.cellSize;
-
-				if(k == 0 || grid.isSolidCell(i, j, k - 1))
-					div -= grid.cellFaceVel_w.at(minFaceIdx_w)/grid.cellSize;
-
-				if(k == grid.cellNum_k - 1 || grid.isSolidCell(i, j, k + 1))
-					div += grid.cellFaceVel_w.at(maxFaceIdx_w)/grid.cellSize;
-
-				//grid.cellCenterDivergence.coeffRef(cellCenterIdx, 0) = 0
-				//	- ((faceVelMax_u - faceVelMin_u) + (faceVelMax_v - faceVelMin_v) + (faceVelMax_w - faceVelMin_w) ) * grid.invCellSize;// * invTimeStep
-				grid.cellCenterDivergence.coeffRef(cellCenterIdx, 0) = div;
-			}
-	//checkForNan(grid.cellCenterDivergence);
-
-	grid.cg.compute(grid.laplacianSparseNBR);
-	//DEBUG();
-
-	//std::cout<<grid.laplacianSparseNBR<<std::endl;
-	std::cout<<grid.cellCenterDivergence<<std::endl;
-
-    //if(!grid.laplacianSparseNBR.isApprox(grid.laplacianSparseNBR.transpose())){
-    //    throw std::runtime_error("grid.laplacianSparseNBR not symetrical.");
-    //}
-    //else if(grid.cg.info() == Eigen::NumericalIssue){
-    //	throw std::runtime_error("Possibly non semi-positive definitie matrix!");
-    //}
-*/
-}
-
 inline double projectPressureOnFace(MacGrid & grid, int idxNBR, double cCP){
 
 	double nbrCCP = grid.cellCenterPressure.at(idxNBR);
-	return invWaterDensity * grid.invCellSize * (cCP - nbrCCP);
+	return (cCP - nbrCCP);
 }
 
 void applyPressureForces(MacGrid & grid, double timeStep){
@@ -422,9 +213,7 @@ void applyPressureForces(MacGrid & grid, double timeStep){
 	laplacianSparseNBR.setZero();
 	cellCenterDivergence.setZero();
 
-	double invTimeStep = 1.f/timeStep;
-
-	double scale = timeStep/(double)grid.cellSize;
+	double scale = timeStep/ (grid.cellSize * grid.cellSize);
 	//std::cout<<"SCALE: "<<scale<<std::endl;
 	for ( uint i = 0 ; i < grid.cellNum_i - 0 ; i++)
 		for ( uint j = 0 ; j < grid.cellNum_j - 0 ; j++)
@@ -509,22 +298,22 @@ void applyPressureForces(MacGrid & grid, double timeStep){
 					-(grid.cellFaceVel_w.at(maxFaceIdx_w) - grid.cellFaceVel_w.at(minFaceIdx_w))/grid.cellSize;
 
 				if(i == 0 || grid.isSolidCell(i - 1, j, k))
-					div -= grid.cellFaceVel_u.at(minFaceIdx_u)/grid.cellSize;
+					div -= grid.cellFaceVel_u.at(minFaceIdx_u) /grid.cellSize;
 
 				if(i == grid.cellNum_i - 1 || grid.isSolidCell(i + 1, j, k))
-					div += grid.cellFaceVel_u.at(maxFaceIdx_u)/grid.cellSize;
+					div += grid.cellFaceVel_u.at(maxFaceIdx_u) /grid.cellSize;
 
 				if(j == 0 || grid.isSolidCell(i, j - 1, k))
-					div -= grid.cellFaceVel_v.at(minFaceIdx_v)/grid.cellSize;
+					div -= grid.cellFaceVel_v.at(minFaceIdx_v) /grid.cellSize;
 
 				if(j == grid.cellNum_j - 1 || grid.isSolidCell(i, j + 1, k))
-					div += grid.cellFaceVel_v.at(maxFaceIdx_v)/grid.cellSize;
+					div += grid.cellFaceVel_v.at(maxFaceIdx_v) /grid.cellSize;
 
 				if(k == 0 || grid.isSolidCell(i, j, k - 1))
-					div -= grid.cellFaceVel_w.at(minFaceIdx_w)/grid.cellSize;
+					div -= grid.cellFaceVel_w.at(minFaceIdx_w) /grid.cellSize;
 
 				if(k == grid.cellNum_k - 1 || grid.isSolidCell(i, j, k + 1))
-					div += grid.cellFaceVel_w.at(maxFaceIdx_w)/grid.cellSize;
+					div += grid.cellFaceVel_w.at(maxFaceIdx_w) /grid.cellSize;
 
 				cellCenterDivergence.coeffRef(cellCenterIdx, 0) = div;
 			}
@@ -537,14 +326,20 @@ void applyPressureForces(MacGrid & grid, double timeStep){
 	
 	//initializeCellCenterDivergence(grid, timeStep);
 	cellCenterPressure = grid.cg.solve(cellCenterDivergence);
-	//enforceBoundaryPressure(grid);
-	for(Eigen::SparseVector<double>::InnerIterator it(cellCenterPressure); it; ++it) {
-        if (grid.cellCenterState.at(it.index()) == LIQUID){
-        	grid.cellCenterPressure.at(it.index()) = it.value();
-        }
-    }
 
-	scale = timeStep/(double)grid.cellSize;
+	if(ENFORCE_INCOMPRESSIBILITY){
+		for(Eigen::SparseVector<double>::InnerIterator it(cellCenterPressure); it; ++it)
+    	    if (grid.cellCenterState.at(it.index()) == LIQUID)
+    	    	grid.cellCenterPressure.at(it.index()) = it.value() * (double)grid.cellCenterDensity.at(it.index()) / WATER_PARTICLE_DENSITY;
+	}
+    else{
+		for(Eigen::SparseVector<double>::InnerIterator it(cellCenterPressure); it; ++it)
+    	    if (grid.cellCenterState.at(it.index()) == LIQUID)
+    	    	grid.cellCenterPressure.at(it.index()) = it.value();
+    }
+    //enforceBoundaryPressure(grid);
+
+	scale = timeStep/grid.cellSize;
 
 	for ( uint i = 0 ; i < grid.cellNum_i - 0 ; i++)
 		for ( uint j = 0 ; j < grid.cellNum_j - 0 ; j++)
@@ -569,7 +364,8 @@ void applyPressureForces(MacGrid & grid, double timeStep){
         			bool rightFluid = rightExists && cellState == LIQUID;
 
  					if (leftFluid || rightFluid)
-    					grid.cellFaceVel_u.at(grid.cellFaceIdx<minU>(i, j, k)) -= projectPressureOnFace(grid, idxMin_i, cCP) * scale;
+    					//grid.cellFaceVel_u.at(grid.cellFaceIdx<minU>(i, j, k)) -= projectPressureOnFace(grid, idxMin_i, cCP) * scale;// *grid.cellSize;
+    					grid.cellFaceVel<minU>(i, j, k) -= projectPressureOnFace(grid, idxMin_i, cCP) * scale;// *grid.cellSize;
     			}
 			
     			if(grid.isCellInGrid_j(j - 1)){ 
@@ -581,7 +377,8 @@ void applyPressureForces(MacGrid & grid, double timeStep){
         			bool rightFluid = rightExists && cellState == LIQUID;
 
  					if (leftFluid || rightFluid)
-    					grid.cellFaceVel_v.at(grid.cellFaceIdx<minV>(i, j, k)) -= projectPressureOnFace(grid, idxMin_j, cCP) * scale;
+    					//grid.cellFaceVel_v.at(grid.cellFaceIdx<minV>(i, j, k)) -= projectPressureOnFace(grid, idxMin_j, cCP) * scale;// *grid.cellSize;
+    					grid.cellFaceVel<minV>(i, j, k) -= projectPressureOnFace(grid, idxMin_j, cCP) * scale;// *grid.cellSize;
 				}
     			if(grid.isCellInGrid_k(k - 1)){
 					auto cellStateMin_k = grid.cellCenterState.at(idxMin_k);
@@ -592,7 +389,8 @@ void applyPressureForces(MacGrid & grid, double timeStep){
         			bool rightFluid = rightExists && cellState == LIQUID;
 
  					if (leftFluid || rightFluid)
-    					grid.cellFaceVel_w.at(grid.cellFaceIdx<minW>(i, j, k)) -= projectPressureOnFace(grid, idxMin_k, cCP) * scale;
+    					//grid.cellFaceVel_w.at(grid.cellFaceIdx<minW>(i, j, k)) -= projectPressureOnFace(grid, idxMin_k, cCP) * scale;// *grid.cellSize;
+    					grid.cellFaceVel<minW>(i, j, k) -= projectPressureOnFace(grid, idxMin_k, cCP) * scale;// *grid.cellSize;
     			}
 			}
 }
@@ -627,6 +425,37 @@ void enforceBoundaryVelocities(MacGrid & grid){
 					grid.cellFaceVel<maxW>(i, j, k) = std::min<double>(0.f, grid.cellFaceVel<maxW>(i, j, k));
 			}
 }
+
+//void enforceBoundaryVelocities(MacGrid & grid){
+//
+//	for ( uint i = 0 ; i < grid.cellNum_i ; i++)
+//		for ( uint j = 0 ; j < grid.cellNum_j ; j++)
+//			for ( uint k = 0 ; k < grid.cellNum_k ; k++){
+//				
+//				//std::cout<<"enforceBoundaryVelocities start"<<std::endl;
+//				if(grid.getCellState(i,j,k) != LIQUID)
+//					continue;
+//				//std::cout<<"grid.getCellState(i,j,k) != SOLID"<<std::endl;
+//
+//				if(grid.isValidFace<minU>(i, j, k) && grid.isSolidCell(i - 1, j, k))
+//					grid.cellFaceVel<minU>(i, j, k) = std::max<double>(0.f, grid.cellFaceVel<minU>(i, j, k));
+//
+//				if(grid.isValidFace<maxU>(i, j, k) && grid.isSolidCell(i + 1, j, k))
+//					grid.cellFaceVel<maxU>(i, j, k) = std::min<double>(0.f, grid.cellFaceVel<maxU>(i, j, k));
+//
+//				if(grid.isValidFace<minV>(i, j, k) && grid.isSolidCell(i, j - 1, k))
+//					grid.cellFaceVel<minV>(i, j, k) = std::max<double>(0.f, grid.cellFaceVel<minV>(i, j, k));
+//
+//				if(grid.isValidFace<maxV>(i, j, k) && grid.isSolidCell(i, j + 1, k))
+//					grid.cellFaceVel<maxV>(i, j, k) = std::min<double>(0.f, grid.cellFaceVel<maxV>(i, j, k));
+//
+//				if(grid.isValidFace<minW>(i, j, k) && grid.isSolidCell(i, j, k - 1))
+//					grid.cellFaceVel<minW>(i, j, k) = std::max<double>(0.f, grid.cellFaceVel<minW>(i, j, k));
+//
+//				if(grid.isValidFace<maxW>(i, j, k) && grid.isSolidCell(i, j, k + 1))
+//					grid.cellFaceVel<maxW>(i, j, k) = std::min<double>(0.f, grid.cellFaceVel<maxW>(i, j, k));
+//			}
+//}
 
 void extrapolateBoundaryVelocities(MacGrid & grid){
 
@@ -736,11 +565,6 @@ void enforceBoundaryPressure(MacGrid & grid){
 			}
 }
 
-void enforceBoundary(MacGrid & grid){
-	enforceBoundaryPressure(grid);
-	enforceBoundaryVelocities(grid);
-}
-
 void updateParticles(Particles & particles, double subStep){
 	for(uint pi = 0 ; pi < particles.positions.size() ; pi++){
 		auto newVel = particles.velocities[pi] * subStep;
@@ -762,15 +586,15 @@ void collisionBasedParticleUpdate(Particles & particles, MacGrid & grid, double 
 		Vector3d tempPos = pPos;
 
 		//while(boxCollision(grid.origin, grid.end, tempPos, tempVel)){}
-		if(boxCollision(grid.origin, grid.end, tempPos, tempVel)){
+		if(boxCollision(grid.CBStart, grid.CBEnd, tempPos, tempVel)){
 			pVel = tempVel / subStep;
 		}
 		else{
 			pPos += tempVel;
 		}
-		assert(!std::isnan(pPos[0]));
-		assert(!std::isnan(pPos[1]));
-		assert(!std::isnan(pPos[2]));
+		assert(pPos[0] > grid.CBStart[0] && grid.CBEnd[0] > pPos[0]);
+		assert(pPos[1] > grid.CBStart[1] && grid.CBEnd[1] > pPos[1]);
+		assert(pPos[2] > grid.CBStart[2] && grid.CBEnd[2] > pPos[2]);
 	}
 }
 
@@ -820,6 +644,8 @@ double calculateSubStep(MacGrid const & grid, double timeStep){
 
 void transferAttributes(Particles const & particles, MacGrid & grid){
 
+	std::fill(grid.cellCenterDensity.begin(), grid.cellCenterDensity.end(), 0);
+	
 	std::fill(grid.cellFaceVel_u.begin(), grid.cellFaceVel_u.end(), 0);
 	std::fill(grid.cellFaceVel_v.begin(), grid.cellFaceVel_v.end(), 0);
 	std::fill(grid.cellFaceVel_w.begin(), grid.cellFaceVel_w.end(), 0);
@@ -848,8 +674,9 @@ void transferAttributes(Particles const & particles, MacGrid & grid){
 		auto cellFacePosc000_u = grid.cellFacePos<minU>(i, min_j, min_k);
 		auto cellFacePosc111_u = grid.cellFacePos<maxU>(i, max_j, max_k);
 
-		//auto weights_u = getWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
-		auto weights_u = getDistWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
+		auto weights_u = getWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
+		//auto weights_u = getDistWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
+
 		for(uint ii=0 ; ii<8 ; ii++){
 			auto fi_u = cellUFaceNBRIdcs[ii];
 			grid.cellFaceVel_u.at(fi_u) += weights_u[ii] * pVel[0];
@@ -860,8 +687,8 @@ void transferAttributes(Particles const & particles, MacGrid & grid){
 		auto cellFacePosc000_v = grid.cellFacePos<minV>(min_i, j, min_k);
 		auto cellFacePosc111_v = grid.cellFacePos<maxV>(max_i, j, max_k);
 
-		//auto weights_v = getWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
-		auto weights_v = getDistWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
+		auto weights_v = getWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
+		//auto weights_v = getDistWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
 
 		for(uint ii=0 ; ii<8 ; ii++){
 			auto fi_v = cellVFaceNBRIdcs[ii];
@@ -873,8 +700,8 @@ void transferAttributes(Particles const & particles, MacGrid & grid){
 		auto cellFacePosc000_w = grid.cellFacePos<minW>(min_i, min_j, k);
 		auto cellFacePosc111_w = grid.cellFacePos<maxW>(max_i, max_j, k);
 
-		//auto weights_w = getWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
-		auto weights_w = getDistWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
+		auto weights_w = getWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
+		//auto weights_w = getDistWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
 
 		for(uint ii=0 ; ii<8 ; ii++){
 			auto fi_w = cellWFaceNBRIdcs[ii];
@@ -883,7 +710,11 @@ void transferAttributes(Particles const & particles, MacGrid & grid){
 		}
 
 		//Set Cell to liquid
-		grid.getCellState(i,j,k) = LIQUID;
+		auto idx = grid.cellCenterIdx(i,j,k);
+		if(ENFORCE_INCOMPRESSIBILITY)
+			grid.cellCenterDensity.at(idx) += 1;
+		grid.cellCenterState.at(idx) = LIQUID;
+		//grid.getCellState(i,j,k) = LIQUID;
 	}
 
 	DEBUG();
@@ -913,6 +744,7 @@ void transferAttributes(Particles const & particles, MacGrid & grid){
 
 void transferAttributes(MacGrid const & grid, Particles & particles){
 
+	std::cout<<"Pic"<<std::endl;
 	//pi is particle index
 	for(uint pi = 0 ; pi < particles.num ; pi++){
 		Vector3dRef pPos = particles.getPos(pi);
@@ -985,12 +817,13 @@ void advanceStep(Particles & particles, MacGrid & grid, double timeStep){
 //=====================================FLIP FUNCTIONS==========================================
 //=============================================================================================
 
-
 void transferAttributes(Particles const & particles, FlipMacGrid & grid){
 
 	grid.cellFaceVelOld_u.swap(grid.cellFaceVel_u);
 	grid.cellFaceVelOld_v.swap(grid.cellFaceVel_v);
 	grid.cellFaceVelOld_w.swap(grid.cellFaceVel_w);
+
+	std::fill(grid.cellCenterDensity.begin(), grid.cellCenterDensity.end(), 0);
 
 	std::fill(grid.cellFaceVel_u.begin(), grid.cellFaceVel_u.end(), 0);
 	std::fill(grid.cellFaceVel_v.begin(), grid.cellFaceVel_v.end(), 0);
@@ -1016,24 +849,27 @@ void transferAttributes(Particles const & particles, FlipMacGrid & grid){
 		auto localNBRIdcs = getLocalNBRIdcs(grid, pPos, i, j, k);
 		auto [min_i, min_j, min_k, max_i, max_j, max_k] = localNBRIdcs;
 
-		tuple8i cellUFaceNBRIdcs = getStageredCellFaceNBRIdcs_u(grid, i, min_j, min_k, max_j, max_k);
-		auto cellFacePosc000_u = grid.cellFacePos<minU>(i, min_j, min_k);
-		auto cellFacePosc111_u = grid.cellFacePos<maxU>(i, max_j, max_k);
-
-		//auto weights_u = getWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
-		auto weights_u = getDistWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
-		for(uint ii=0 ; ii<8 ; ii++){
-			auto fi_u = cellUFaceNBRIdcs[ii];
-			grid.cellFaceVel_u.at(fi_u) += weights_u[ii] * pVel[0];
-			grid.cellFaceWeightSum_u.at(fi_u) += weights_u.at(ii);
+		{
+			tuple8i cellUFaceNBRIdcs = getStageredCellFaceNBRIdcs_u(grid, i, min_j, min_k, max_j, max_k);
+			auto cellFacePosc000_u = grid.cellFacePos<minU>(i, min_j, min_k);
+			auto cellFacePosc111_u = grid.cellFacePos<maxU>(i, max_j, max_k);
+	
+			auto weights_u = getWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
+			//auto weights_u = getDistWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
+	
+			for(uint ii=0 ; ii<8 ; ii++){
+				auto fi_u = cellUFaceNBRIdcs[ii];
+				grid.cellFaceVel_u.at(fi_u) += weights_u[ii] * pVel[0];
+				grid.cellFaceWeightSum_u.at(fi_u) += weights_u.at(ii);
+			}
 		}
 
 		tuple8i cellVFaceNBRIdcs = getStageredCellFaceNBRIdcs_v(grid, j, min_i, min_k, max_i, max_k);
 		auto cellFacePosc000_v = grid.cellFacePos<minV>(min_i, j, min_k);
 		auto cellFacePosc111_v = grid.cellFacePos<maxV>(max_i, j, max_k);
 
-		//auto weights_v = getWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
-		auto weights_v = getDistWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
+		auto weights_v = getWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
+		//auto weights_v = getDistWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
 
 		for(uint ii=0 ; ii<8 ; ii++){
 			auto fi_v = cellVFaceNBRIdcs[ii];
@@ -1045,8 +881,8 @@ void transferAttributes(Particles const & particles, FlipMacGrid & grid){
 		auto cellFacePosc000_w = grid.cellFacePos<minW>(min_i, min_j, k);
 		auto cellFacePosc111_w = grid.cellFacePos<maxW>(max_i, max_j, k);
 
-		//auto weights_w = getWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
-		auto weights_w = getDistWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
+		auto weights_w = getWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
+		//auto weights_w = getDistWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
 
 		for(uint ii=0 ; ii<8 ; ii++){
 			auto fi_w = cellWFaceNBRIdcs[ii];
@@ -1055,7 +891,11 @@ void transferAttributes(Particles const & particles, FlipMacGrid & grid){
 		}
 
 		//Set Cell to liquid
-		grid.getCellState(i,j,k) = LIQUID;
+		auto idx = grid.cellCenterIdx(i,j,k);
+		if(ENFORCE_INCOMPRESSIBILITY)
+			grid.cellCenterDensity.at(idx) += 1;
+		grid.cellCenterState.at(idx) = LIQUID;
+		//grid.getCellState(i,j,k) = LIQUID;
 	}
 
 	DEBUG();
@@ -1119,13 +959,206 @@ void transferAttributes(FlipMacGrid const & grid, Particles & particles){
 		vel[2] = trilinearInterpolation(cellFaceNBRVels_w, getDiff(pPos, cellFacePosc000_w, cellFacePosc111_w));
 		velOld[2] = trilinearInterpolation(cellFaceNBRVelsOld_w, getDiff(pPos, cellFacePosc000_w, cellFacePosc111_w));
 
-		//Flip
-		pVel = vel * FPIC_RATIO + (pVel + (vel - velOld)) * (1.f - FPIC_RATIO);
+		//     Pic Equation       		  Flip Equation
+		//pVel = vel * (1.f - FPIC_RATIO) + (pVel + (vel - velOld)) * FPIC_RATIO;
+		pVel = vel + (pVel + (vel - velOld)) * FPIC_RATIO;
 	}
 }
 
 
 void advanceStep(Particles & particles, FlipMacGrid & grid, double timeStep){
+	DEBUG();
+	double step = 0;
+	int iterations = 0;
+	while((step < timeStep)){//&& (iterations < 5)){
+
+		//std::cout<<"===================================STEP: "<<
+		//step<<"/"<<timeStep<<"==================================="<<std::endl;
+
+		transferAttributes(particles, grid);
+
+			//std::cout<<"applyExternalForces(grid, timeStep)"<<std::endl;
+			applyExternalForces(grid, timeStep);
+			//std::cout<<"enforceBoundaryVelocities(grid)"<<std::endl;
+			//grid.printOutMaxFaceVels();
+			enforceBoundaryVelocities(grid);
+			//std::cout<<"applyPressureForces(grid, timeStep)"<<std::endl;
+			applyPressureForces(grid, timeStep);
+			//std::cout<<"enforceBoundaryVelocities(grid)"<<std::endl;
+			//grid.printOutMaxFaceVels();
+			enforceBoundaryVelocities(grid);
+			//std::cout<<"extrapolateBoundaryVelocities(grid"<<std::endl;
+			extrapolateBoundaryVelocities(grid);
+			//std::cout<<"transferAttributes(grid, particles)"<<std::endl;
+			enforceBoundaryVelocities(grid);
+
+		transferAttributes(grid, particles);
+
+		//double subStep = calculateSubStep(grid, timeStep);
+		double subStep = timeStep;
+
+		collisionBasedParticleUpdate(particles, grid, subStep);
+		//updateParticles(particles, timeStep);
+
+		step += subStep;
+		//iterations++;
+	}
+	//std::cout<<"advanceStep done!"<<std::endl;
+}
+
+
+//=============================================================================================
+//=====================================APIC FUNCTIONS==========================================
+//=============================================================================================
+
+
+void transferAttributes(AffineParticles const & particles, MacGrid & grid){
+
+	std::fill(grid.cellCenterDensity.begin(), grid.cellCenterDensity.end(), 0);
+
+	std::fill(grid.cellFaceVel_u.begin(), grid.cellFaceVel_u.end(), 0);
+	std::fill(grid.cellFaceVel_v.begin(), grid.cellFaceVel_v.end(), 0);
+	std::fill(grid.cellFaceVel_w.begin(), grid.cellFaceVel_w.end(), 0);
+
+	std::fill(grid.cellFaceWeightSum_u.begin(), grid.cellFaceWeightSum_u.end(), 0);
+	std::fill(grid.cellFaceWeightSum_v.begin(), grid.cellFaceWeightSum_v.end(), 0);
+	std::fill(grid.cellFaceWeightSum_w.begin(), grid.cellFaceWeightSum_w.end(), 0);
+
+	//Set inner bound cells to AIR
+	for ( uint i=1 ; i<grid.cellNum_i-1 ; i++)
+		for ( uint j=1 ; j<grid.cellNum_j-1 ; j++)
+			for ( uint k=1 ; k<grid.cellNum_k-1 ; k++)
+				grid.getCellState(i,j,k) = AIR;
+
+	DEBUG();
+
+	//pi is particle index
+	for(uint pi = 0 ; pi < particles.num ; pi++){
+		auto pPos = particles.getPos(pi);
+		auto pVel = particles.getVel(pi);
+		auto [i, j, k] = grid.gridCoord(pPos);
+		auto localNBRIdcs = getLocalNBRIdcs(grid, pPos, i, j, k);
+		auto [min_i, min_j, min_k, max_i, max_j, max_k] = localNBRIdcs;
+
+		auto pAffine_x = particles.getAffine<X>(pi);
+		tuple8i cellUFaceNBRIdcs = getStageredCellFaceNBRIdcs_u(grid, i, min_j, min_k, max_j, max_k);
+		std::array<Vector3d, 8> cellFaceNBRPoses_u = getStageredCellFacePos_u(grid, i, min_j, min_k, max_j, max_k);
+		auto cellFacePosc000_u = cellFaceNBRPoses_u[0];
+		auto cellFacePosc111_u = cellFaceNBRPoses_u[7];
+
+		auto weights_u = getWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
+		//auto weights_u = getDistWeights(pPos, cellFacePosc000_u, cellFacePosc111_u);
+		for(uint ii=0 ; ii<8 ; ii++){
+			auto fi_u = cellUFaceNBRIdcs[ii];
+			grid.cellFaceVel_u.at(fi_u) += weights_u[ii] * (pVel[0] + pAffine_x.dot(cellFaceNBRPoses_u[ii] - pPos) * APIC_RATIO);
+			grid.cellFaceWeightSum_u.at(fi_u) += weights_u.at(ii);
+		}
+
+		auto pAffine_y = particles.getAffine<Y>(pi);
+		tuple8i cellVFaceNBRIdcs = getStageredCellFaceNBRIdcs_v(grid, j, min_i, min_k, max_i, max_k);
+		std::array<Vector3d, 8> cellFaceNBRPoses_v = getStageredCellFacePos_v(grid, j, min_i, min_k, max_i, max_k);
+		auto cellFacePosc000_v = cellFaceNBRPoses_v[0];
+		auto cellFacePosc111_v = cellFaceNBRPoses_v[7];
+
+		auto weights_v = getWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
+		//auto weights_v = getDistWeights(pPos, cellFacePosc000_v, cellFacePosc111_v);
+
+		for(uint ii=0 ; ii<8 ; ii++){
+			auto fi_v = cellVFaceNBRIdcs[ii];
+			grid.cellFaceVel_v.at(fi_v) += weights_v[ii] * (pVel[1] + pAffine_y.dot(cellFaceNBRPoses_v[ii] - pPos) * APIC_RATIO);
+			grid.cellFaceWeightSum_v.at(fi_v) += weights_v[ii];
+		}
+
+		auto pAffine_z = particles.getAffine<Z>(pi);
+		tuple8i cellWFaceNBRIdcs = getStageredCellFaceNBRIdcs_w(grid, k, min_i, min_j, max_i, max_j);
+		std::array<Vector3d, 8> cellFaceNBRPoses_w = getStageredCellFacePos_w(grid, k, min_i, min_j, max_i, max_j);
+		auto cellFacePosc000_w = grid.cellFacePos<minW>(min_i, min_j, k);
+		auto cellFacePosc111_w = grid.cellFacePos<maxW>(max_i, max_j, k);
+
+		auto weights_w = getWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
+		//auto weights_w = getDistWeights(pPos, cellFacePosc000_w, cellFacePosc111_w);
+
+		for(uint ii=0 ; ii<8 ; ii++){
+			auto fi_w = cellWFaceNBRIdcs[ii];
+			grid.cellFaceVel_w.at(fi_w) += weights_w[ii] * (pVel[2] + pAffine_z.dot(cellFaceNBRPoses_w[ii] - pPos) * APIC_RATIO);
+			grid.cellFaceWeightSum_w.at(fi_w) += weights_w[ii];
+		}
+
+		//Set Cell to liquid
+		auto idx = grid.cellCenterIdx(i,j,k);
+		if(ENFORCE_INCOMPRESSIBILITY)
+			grid.cellCenterDensity.at(idx) += 1;
+		grid.cellCenterState.at(idx) = LIQUID;
+		//grid.getCellState(i,j,k) = LIQUID;
+	}
+
+	DEBUG();
+
+	for (uint i_u = 0; i_u < grid.cellFaceVel_u.size() ; i_u++)
+		if(grid.cellFaceWeightSum_u[i_u])
+			grid.cellFaceVel_u[i_u] /= grid.cellFaceWeightSum_u[i_u];
+		else
+			grid.cellFaceVel_u[i_u] = 0;
+
+	for (uint i_v = 0; i_v < grid.cellFaceVel_v.size() ; i_v++)
+		if(grid.cellFaceWeightSum_v[i_v])
+			grid.cellFaceVel_v[i_v] /= grid.cellFaceWeightSum_v[i_v];
+		else
+			grid.cellFaceVel_v[i_v] = 0;
+
+
+	for (uint i_w = 0; i_w < grid.cellFaceVel_w.size() ; i_w++)
+		if(grid.cellFaceWeightSum_w[i_w])
+			grid.cellFaceVel_w[i_w] /= grid.cellFaceWeightSum_w[i_w];
+		else
+			grid.cellFaceVel_w[i_w] = 0;
+
+	setDefaultCellStates(grid);
+		
+}
+
+void transferAttributes(MacGrid const & grid, AffineParticles & particles){
+
+	std::cout<<"Apic"<<std::endl;
+	//pi is particle index
+	for(uint pi = 0 ; pi < particles.num ; pi++){
+		Vector3dRef pPos = particles.getPos(pi);
+		Vector3dRef pVel = particles.getVel(pi);
+
+		auto [i, j, k] = grid.gridCoord(pPos);
+		auto [min_i, min_j, min_k, max_i, max_j, max_k] = getLocalNBRIdcs(grid, pPos, i, j, k);
+
+		auto pAffine_x = particles.getAffine<X>(pi);
+		tuple8i cellUFaceNBRIdcs = getStageredCellFaceNBRIdcs_u(grid, i, min_j, min_k, max_j, max_k);
+		auto cellFacePosc000_u = grid.cellFacePos<minU>(i, min_j, min_k);
+		auto cellFacePosc111_u = grid.cellFacePos<maxU>(i, max_j, max_k);
+		auto cellFaceNBRVels_u = getFromIdcs(grid.cellFaceVel_u, cellUFaceNBRIdcs);
+		pVel[0] = trilinearInterpolation(cellFaceNBRVels_u, getDiff(pPos, cellFacePosc000_u, cellFacePosc111_u));
+		pAffine_x = gradientTrilinearInterpolation(cellFaceNBRVels_u, getDiff(pPos, cellFacePosc000_u, cellFacePosc111_u));// * grid.invCellSize;
+		//std::cout<<pAffine_x<<std::endl;
+
+		auto pAffine_y = particles.getAffine<Y>(pi);
+		tuple8i cellVFaceNBRIdcs = getStageredCellFaceNBRIdcs_v(grid, j, min_i, min_k, max_i, max_k);
+		auto cellFacePosc000_v = grid.cellFacePos<minV>(min_i, j, min_k);
+		auto cellFacePosc111_v = grid.cellFacePos<maxV>(max_i, j, max_k);
+		auto cellFaceNBRVels_v = getFromIdcs(grid.cellFaceVel_v, cellVFaceNBRIdcs);
+		pVel[1] = trilinearInterpolation(cellFaceNBRVels_v, getDiff(pPos, cellFacePosc000_v, cellFacePosc111_v));
+		pAffine_y = gradientTrilinearInterpolation(cellFaceNBRVels_v, getDiff(pPos, cellFacePosc000_v, cellFacePosc111_v));// * grid.invCellSize;
+		//std::cout<<pAffine_y<<std::endl;
+
+		auto pAffine_z = particles.getAffine<Z>(pi);
+		tuple8i cellWFaceNBRIdcs = getStageredCellFaceNBRIdcs_w(grid, k, min_i, min_j, max_i, max_j);
+		auto cellFacePosc000_w = grid.cellFacePos<minW>(min_i, min_j, k);
+		auto cellFacePosc111_w = grid.cellFacePos<maxW>(max_i, max_j, k);
+		auto cellFaceNBRVels_w = getFromIdcs(grid.cellFaceVel_w, cellWFaceNBRIdcs);
+		pVel[2] = trilinearInterpolation(cellFaceNBRVels_w, getDiff(pPos, cellFacePosc000_w, cellFacePosc111_w));
+		pAffine_z = gradientTrilinearInterpolation(cellFaceNBRVels_w, getDiff(pPos, cellFacePosc000_w, cellFacePosc111_w));// * grid.invCellSize;
+		//std::cout<<pAffine_z<<std::endl;
+	}
+}
+
+
+void advanceStep(AffineParticles & particles, MacGrid & grid, double timeStep){
 	DEBUG();
 	double step = 0;
 	int iterations = 0;

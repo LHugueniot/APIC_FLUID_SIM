@@ -119,24 +119,27 @@ int main(){
 
     //=====================================PICSIM SETUP=========================================
 
+    double scale = 1.f/3.f;
+
     //Setup pic sim
-    pic::MacGrid grid(Vector3d(0,0,0), 20, 20, 20, 1.f);
-    //pic::FlipMacGrid grid(Vector3d(0,0,0), 20, 20, 20, 1.f);
+    pic::MacGrid grid(Vector3d(0,0,0), 20, 20, 20, scale);
+    //pic::FlipMacGrid grid(Vector3d(0,0,0), 20, 20, 20, scale);
     setDefaultCellStates(grid);
     //initializeLaplacianNBRMat(grid);
     //
-    //std::vector<double> particlePositions = pic::AABCubeUniformParticles(
-    //    Vector3d(7.5, 7.5, 7.5 ), Vector3d(12.5, 12.5, 12.5 ), 0.2);
     std::vector<double> particlePositions = pic::AABCubeUniformParticles(
-        Vector3d(4, 4, 4), Vector3d(16, 16, 16), .5f);
+        Vector3d(2, 4, 4) * scale, Vector3d(14, 16, 16) * scale, .5f * scale);
+    //std::vector<double> particlePositions = pic::AABCubeUniformParticles(
+    //    Vector3d(4, 4, 4), Vector3d(16, 16, 16), .5f);
 
     //std::vector<double> particlePositions = pic::AABCubeUniformParticles(Vector3d(2.5 , 7 ,2.5 ), 2, 64);
     //std::vector<double> particlePositions{2, 8 ,2};
     std::vector<double> particleVelocities(particlePositions.size(), 0);
 
     //for(uint i = 0 ; i < particleVelocities.size()/3 ; i++)
-    //    particleVelocities[i * 3 + 1] = -1;
-    pic::Particles particles(1.f, particlePositions, particleVelocities);
+    //    particleVelocities[i * 3] = -9.8f;
+    //pic::Particles particles(1.f, particlePositions, particleVelocities);
+    pic::AffineParticles particles(1.f, particlePositions, particleVelocities);
     std::cout<<"particles.num: "<<particles.num<<std::endl;
     //throw 1;
 
@@ -161,13 +164,16 @@ int main(){
 
     //=====================================MAIN LOOP============================================
 
+    int step = 0;
+
     //initPointsVAO(point);
     bool quit = false;
+    bool doStep = false;
     while(!quit)
     {
         check_gl_error();
         SDL_Event event;
-        if (SDL_PollEvent(&event) != 0){
+        while (SDL_PollEvent(&event) != 0){
             switch (event.type){
                 case SDL_QUIT:
                     quit = true;
@@ -188,8 +194,11 @@ int main(){
                             moveCamera(camera, Camera::ORBIT_DOWN);
                             break;
                         case SDLK_SPACE:
+                            //doStep = !doStep;
                             pic::advanceStep(particles, grid, timeStep);
                             updatePointsVAO(points);
+                            step++;
+                            std::cout<<"step: "<<step<<std::endl;
                             break;
                         case SDLK_f:
                             MGdata.showCellFaceVels = !MGdata.showCellFaceVels;
@@ -223,6 +232,11 @@ int main(){
             if (event.type == SDL_QUIT){
                 quit = true;
             }
+        }
+
+        if(doStep){
+            pic::advanceStep(particles, grid, timeStep);
+            updatePointsVAO(points);
         }
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.f);

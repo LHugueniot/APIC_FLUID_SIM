@@ -96,6 +96,48 @@ std::ostream &operator<<(std::ostream &out, const std::vector<T>& vec){
     return out;
 }
 
+template<class T>
+Eigen::Matrix<T, 3, 1> gradientTrilinearInterpolation(std::array<T, 8> const & attr, Vector3d const & pos){
+    double x = pos[0];
+    double y = pos[1];
+    double z = pos[2];
+    auto [c000, c100, c001, c101, c010, c110, c011, c111] = attr;
+/*
+    Eigen::Matrix<T, 3, 1>(-1.0 * (1 - y) * (1 - z),  -1.0 * (1 - x) * (1 - z), -1.0 * (1 - x) * (1 - y));  
+    Eigen::Matrix<T, 3, 1>(1.0 * (1 - y) * (1 - z),   x * (-1.0) * (1 - z),     x * (1 - y) * (-1.0));
+    Eigen::Matrix<T, 3, 1>((-1.0) * y * (1 - z),      (1 - x) * 1.0 * (1 - z),  (1 - x) * y * (-1.0));
+    Eigen::Matrix<T, 3, 1>(1.0 * y * (1 - z),         x * 1.0 * (1 - z),        x * y * (-1.0));
+    Eigen::Matrix<T, 3, 1>((-1.0) * (1 - y) * z,      (1 - x) * (-1.0) * z,     (1 - x) * (1 - y) * 1.0);
+    Eigen::Matrix<T, 3, 1>(1.0 * (1 - y) * z,         x * (-1.0) * z,           x * (1 - y) * 1.0);
+    Eigen::Matrix<T, 3, 1>((-1.0) * y * z,            (1 - x) * 1.0 * z,        (1 - x) * y * 1.0);
+    Eigen::Matrix<T, 3, 1>(1.0 * y * z,               x * 1.0 * z,              x * y * 1.0);
+*/
+
+    Eigen::Matrix<T, 3, 1> w000(-1.0 * (1 - y) * (1 - z),  -1.0 * (1 - x) * (1 - z), -1.0 * (1 - x) * (1 - y));  
+    Eigen::Matrix<T, 3, 1> w100(1.0 * (1 - y) * (1 - z),   x * (-1.0) * (1 - z),     x * (1 - y) * (-1.0));
+    Eigen::Matrix<T, 3, 1> w001((-1.0) * (1 - y) * z,      (1 - x) * (-1.0) * z,     (1 - x) * (1 - y) * 1.0);
+    Eigen::Matrix<T, 3, 1> w101(1.0 * (1 - y) * z,         x * (-1.0) * z,           x * (1 - y) * 1.0);
+    Eigen::Matrix<T, 3, 1> w010((-1.0) * y * (1 - z),      (1 - x) * 1.0 * (1 - z),  (1 - x) * y * (-1.0));
+    Eigen::Matrix<T, 3, 1> w110(1.0 * y * (1 - z),         x * 1.0 * (1 - z),        x * y * (-1.0));
+    Eigen::Matrix<T, 3, 1> w011((-1.0) * y * z,            (1 - x) * 1.0 * z,        (1 - x) * y * 1.0);
+    Eigen::Matrix<T, 3, 1> w111(1.0 * y * z,               x * 1.0 * z,              x * y * 1.0);
+
+    return c000 * w000 + c100 * w100 + c001 * w001 + c101 * w101 + c010 * w010 + c110 * w110 + c011 * w011 + c111 * w111;
+}
+//template<class T>
+//inline Eigen::Matrix<T, 2, 1> gradBilinearInterpolation(
+//                const T& v00,
+//                const T& v10,
+//                const T& v01,
+//                const T& v11,
+//                T fx, T fy)
+//{
+//  return Eigen::Matrix<T, 2, 1>(fy - 1.0, fx - 1.0) * v00 +
+//  Eigen::Matrix<T, 2, 1>(1.0 - fy, -fx) * v10 +
+//  Eigen::Matrix<T, 2, 1>(-fy, 1.0 - fx) * v01 +
+//  Eigen::Matrix<T, 2, 1>(fy, fx) * v11;
+//}
+
 double getDiff(double const x, double const x0, double const x1);
 Vector3d getDiff(Vector3d const x, Vector3d const x0, Vector3d const x1);
 
@@ -171,12 +213,13 @@ void gridPrint(G& grid, uint ni, uint nj, uint nk){
     }
 }
 **/
-static double const GRAV_Y = -9.8f * 3;
+static double const GRAV_Y = -9.8f;
 //static double const GRAV_Y = 0;
-static double const waterDensity = 1.f;
-static double const invWaterDensity = 1.f/waterDensity;
-static double const airPressure = 1.f;
-static double const FPIC_RATIO = 0.05f;
+static double const WATER_PARTICLE_DENSITY = 10;
+static bool   const ENFORCE_INCOMPRESSIBILITY = 1;
+static double const INV_WATER_PARTICLE_DENSITY = 1.f/WATER_PARTICLE_DENSITY;
+static double const FPIC_RATIO = 0.00f;
+static double const APIC_RATIO = 1.f;
 
 }
 #endif /* MATH_UTILS_H */

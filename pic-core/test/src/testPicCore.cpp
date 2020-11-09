@@ -12,7 +12,6 @@ void transferAttributes(Particles const & particles, MacGrid & grid){
 
 void applyExternalForces(MacGrid & grid, double timeStep){
 
-void initializeLaplacianNBRMat(MacGrid & grid){
 
 void initializeCellCenterDivergence(MacGrid & grid){
 
@@ -380,72 +379,72 @@ TEST_CASE("Grid applyExternalForces", "[MacGrid][Particles][applyExternalForces]
 	REQUIRE(my_particles.velocities[2] == particleVels[2]);
 }
 
-TEST_CASE("Grid initializeLaplacianNBRMat", "[MacGrid][initializeLaplacianNBRMat]"){
-	MacGrid my_grid(Vector3d(0,0,0), 5, 5, 5, 2.f);
-	auto rows = my_grid.laplacianSparseNBR.rows();
-	auto cols = my_grid.laplacianSparseNBR.cols();
-	DEBUG_VAR(rows);
-	DEBUG_VAR(cols);
-	initializeLaplacianNBRMat(my_grid);
-	for(int i=0; i<5 ; i++)
-		for(int j=0; j<5 ; j++)
-			for(int k=0; k<5 ; k++){
-				auto idx = my_grid.cellCenterIdx(i,j,k);
-				if(my_grid.cellIsInBounds(i+1,j,k) && !my_grid.isSolidCell(i+1,j,k)){
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i+1,j,k)) == 1);
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i+1,j,k), idx) == 1);
-				}
-				if(my_grid.cellIsInBounds(i-1,j,k) && !my_grid.isSolidCell(i-1,j,k)){
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i-1,j,k)) == 1);
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i-1,j,k), idx) == 1);
-				}
-				if(my_grid.cellIsInBounds(i,j+1,k) && !my_grid.isSolidCell(i,j+1,k)){
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i,j+1,k)) == 1);
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i,j+1,k), idx) == 1);
-				}
-				if(my_grid.cellIsInBounds(i,j-1,k) && !my_grid.isSolidCell(i,j-1,k)){
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i,j-1,k)) == 1);
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i,j-1,k), idx) == 1);
-				}
-				if(my_grid.cellIsInBounds(i,j,k+1) && !my_grid.isSolidCell(i,j,k+1)){
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i,j,k+1)) == 1);
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i,j,k+1), idx) == 1);
-				}
-				if(my_grid.cellIsInBounds(i,j,k-1) && !my_grid.isSolidCell(i,j,k-1)){
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i,j,k-1)) == 1);
-					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i,j,k-1), idx) == 1);
-				}
-				REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, idx) <= 0);
-			}
-	//DEBUG_VAR(my_grid.laplacianSparseNBR);
-	REQUIRE(&my_grid.cg != nullptr);
-}
+//TEST_CASE("Grid initializeLaplacianNBRMat", "[MacGrid][initializeLaplacianNBRMat]"){
+//	MacGrid my_grid(Vector3d(0,0,0), 5, 5, 5, 2.f);
+//	auto rows = my_grid.laplacianSparseNBR.rows();
+//	auto cols = my_grid.laplacianSparseNBR.cols();
+//	DEBUG_VAR(rows);
+//	DEBUG_VAR(cols);
+//	initializeLaplacianNBRMat(my_grid);
+//	for(int i=0; i<5 ; i++)
+//		for(int j=0; j<5 ; j++)
+//			for(int k=0; k<5 ; k++){
+//				auto idx = my_grid.cellCenterIdx(i,j,k);
+//				if(my_grid.cellIsInBounds(i+1,j,k) && !my_grid.isSolidCell(i+1,j,k)){
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i+1,j,k)) == 1);
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i+1,j,k), idx) == 1);
+//				}
+//				if(my_grid.cellIsInBounds(i-1,j,k) && !my_grid.isSolidCell(i-1,j,k)){
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i-1,j,k)) == 1);
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i-1,j,k), idx) == 1);
+//				}
+//				if(my_grid.cellIsInBounds(i,j+1,k) && !my_grid.isSolidCell(i,j+1,k)){
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i,j+1,k)) == 1);
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i,j+1,k), idx) == 1);
+//				}
+//				if(my_grid.cellIsInBounds(i,j-1,k) && !my_grid.isSolidCell(i,j-1,k)){
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i,j-1,k)) == 1);
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i,j-1,k), idx) == 1);
+//				}
+//				if(my_grid.cellIsInBounds(i,j,k+1) && !my_grid.isSolidCell(i,j,k+1)){
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i,j,k+1)) == 1);
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i,j,k+1), idx) == 1);
+//				}
+//				if(my_grid.cellIsInBounds(i,j,k-1) && !my_grid.isSolidCell(i,j,k-1)){
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, my_grid.cellCenterIdx(i,j,k-1)) == 1);
+//					REQUIRE(my_grid.laplacianSparseNBR.coeffRef(my_grid.cellCenterIdx(i,j,k-1), idx) == 1);
+//				}
+//				REQUIRE(my_grid.laplacianSparseNBR.coeffRef(idx, idx) <= 0);
+//			}
+//	//DEBUG_VAR(my_grid.laplacianSparseNBR);
+//	REQUIRE(&my_grid.cg != nullptr);
+//}
 
 
-TEST_CASE("Grid initializeCellCenterDivergence",
-	"[MacGrid][Particles][initializeCellCenterDivergence]"){
-	MacGrid my_grid(Vector3d(0,0,0), 5, 5, 5, 1.f);
-	//my_grid.printOutMaxFaceVels();
-	//initializeLaplacianNBRMat(my_grid);
-
-	std::vector<double> particlePositions = AABBRandomParticles(Vector3d(2,2,2), Vector3d(2,4,2), 10);
-	std::vector<double> particleVelocities(particlePositions.size(), 0);
-
-	Particles my_particles(1.f, particlePositions, particleVelocities);
-
-	double timeStep = 1.f / 24.f;
-
-	transferAttributes(my_particles, my_grid);
-	applyExternalForces(my_grid, timeStep);
-	enforceBoundaryVelocities(my_grid);
-	initializeCellCenterDivergence(my_grid,timeStep);
-	DEBUG();
-	//i++;
-
-	DEBUG_VAR(my_grid.cellFaceVel_u);
-	DEBUG_VAR(my_grid.cellFaceVel_w);
-	DEBUG();
-}
+//TEST_CASE("Grid initializeCellCenterDivergence",
+//	"[MacGrid][Particles][initializeCellCenterDivergence]"){
+//	MacGrid my_grid(Vector3d(0,0,0), 5, 5, 5, 1.f);
+//	//my_grid.printOutMaxFaceVels();
+//	//initializeLaplacianNBRMat(my_grid);
+//
+//	std::vector<double> particlePositions = AABBRandomParticles(Vector3d(2,2,2), Vector3d(2,4,2), 10);
+//	std::vector<double> particleVelocities(particlePositions.size(), 0);
+//
+//	Particles my_particles(1.f, particlePositions, particleVelocities);
+//
+//	double timeStep = 1.f / 24.f;
+//
+//	transferAttributes(my_particles, my_grid);
+//	applyExternalForces(my_grid, timeStep);
+//	enforceBoundaryVelocities(my_grid);
+//	initializeCellCenterDivergence(my_grid,timeStep);
+//	DEBUG();
+//	//i++;
+//
+//	DEBUG_VAR(my_grid.cellFaceVel_u);
+//	DEBUG_VAR(my_grid.cellFaceVel_w);
+//	DEBUG();
+//}
 
 /*
 TEST_CASE("Grid initializeCellCenterDivergence",
@@ -480,7 +479,6 @@ TEST_CASE("Grid initializeCellCenterDivergence",
 TEST_CASE("Grid applyPressureForces", "[MacGrid][Particles][applyPressureForces]"){
 	MacGrid my_grid(Vector3d(0,0,0), 5, 5, 5, 1.f);
 	my_grid.printOutMaxFaceVels();
-	initializeLaplacianNBRMat(my_grid);
 
 	std::vector<double> particlePoses{3.5f, 3.5f, 3.5f};
 	std::vector<double> particleVels{0.f, 0.f, 0.f};
@@ -534,13 +532,13 @@ TEST_CASE("Set enforce boundary pressure based on neighbourhood.", "[MacGrid][en
 
     pic::MacGrid my_grid(Vector3d(0,0,0), 5, 5, 5, 1.f);
     //setDefaultCellStates(my_grid);
-	for (uint i = 0 ; i < my_grid.cellCenterPressure.rows() ; i++ )
-		my_grid.cellCenterPressure.coeffRef(i, 0) = 2;
+	for (uint i = 0 ; i < my_grid.cellCenterPressure.size() ; i++ )
+		my_grid.cellCenterPressure.at(i) = 2;
 	enforceBoundaryPressure(my_grid);
 
 	auto gridCCP = [&my_grid](int i, int j, int k){
 		auto idx = my_grid.cellCenterIdx(i,j,k);
-		return my_grid.cellCenterPressure.coeffRef(idx, 0);
+		return my_grid.cellCenterPressure.at(idx);
 	};
 	REQUIRE(gridCCP(1,1,1) == 4);
 	REQUIRE(gridCCP(3,1,1) == 4);
@@ -606,7 +604,6 @@ Particles==================================="<<std::endl;
 
 
     pic::MacGrid my_grid(Vector3d(0,0,0), 5, 5, 5, 1.f);
-    initializeLaplacianNBRMat(my_grid);
 
 	std::vector<double> particlePoses = pic::AABBRandomParticles(
 		Vector3d(2, 3 ,2), Vector3d(2, 4 ,2), 1);
@@ -738,17 +735,128 @@ TEST_CASE("Test iterating over grid boundary", "[MacGrid][iterateBoundary]"){
 
 TEST_CASE("Generate uniform particles in a cubic bounding box", "[Particles][AABCubeUniformParticles]"){
 
-    std::vector<double> particlePositions = pic::AABCubeUniformParticles(Vector3d(2.5 , 8 ,2.5 ), 2, 125);
+    std::vector<double> particlePositions = pic::AABCubeUniformParticles(Vector3d(2.5 , 8 ,2.5 ), Vector3d(2.5 , 8 ,2.5 ) + Vector3d(2, 2, 2), 1.f/3.f);
 
-	REQUIRE(particlePositions.size() == 125 * 3);
+	REQUIRE(particlePositions.size() == 648);
 	for (uint i = 0 ; i < particlePositions.size() ; i ++){
 		DEBUG_VAR(i);
-		REQUIRE(0 < particlePositions[i]);
-		REQUIRE(particlePositions[i] < 2.f);
+		REQUIRE(2.5f <= particlePositions[i]);
+		REQUIRE(particlePositions[i] <= 10);
 	}
 
 }
 
+TEST_CASE("transferAttributes speed test pic", "[speed][Particles][MacGrid]"){
+    double scale = 1.f/3.f;
+    pic::MacGrid my_grid(Vector3d(0,0,0), 20, 20, 20, scale);
+
+    //pic::FlipMacGrid grid(Vector3d(0,0,0), 20, 20, 20, scale);
+    setDefaultCellStates(my_grid);
+    //initializeLaplacianNBRMat(grid);
+    //
+    std::vector<double> particlePositions = pic::AABCubeUniformParticles(
+        Vector3d(2, 4, 4) * scale, Vector3d(14, 16, 16) * scale, .5f * scale);
+	
+    std::vector<double> particleVelocities(particlePositions.size(), 0);
+
+    for(uint i = 0 ; i < particleVelocities.size()/3 ; i++)
+        particleVelocities[i * 3] = -9.8f;
+    //pic::Particles particles(1.f, particlePositions, particleVelocities);
+    pic::Particles my_particles(1.f, particlePositions, particleVelocities);
+
+	std::cout<<"particle num: "<<my_particles.num<<std::endl;
+
+	auto start = tnow();
+
+	transferAttributes(my_particles, my_grid);
+
+    auto end = elapsed(start);
+	std::cout<<"transferAttributes(my_particles, my_grid) took: "<<end<<std::endl;
+
+	start = tnow();
+
+	transferAttributes(my_grid, my_particles);
+
+    end = elapsed(start);
+	std::cout<<"transferAttributes(my_grid, my_particles) took: "<<end<<std::endl;
+
+}
+
+TEST_CASE("transferAttributes speed test flip", "[speed][Particles][FlipMacGrid]"){
+    double scale = 1.f/3.f;
+    pic::FlipMacGrid my_grid(Vector3d(0,0,0), 20, 20, 20, scale);
+
+    //pic::FlipMacGrid grid(Vector3d(0,0,0), 20, 20, 20, scale);
+    setDefaultCellStates(my_grid);
+    //initializeLaplacianNBRMat(grid);
+    //
+    std::vector<double> particlePositions = pic::AABCubeUniformParticles(
+        Vector3d(2, 4, 4) * scale, Vector3d(14, 16, 16) * scale, .5f * scale);
+	
+    std::vector<double> particleVelocities(particlePositions.size(), 0);
+
+    for(uint i = 0 ; i < particleVelocities.size()/3 ; i++)
+        particleVelocities[i * 3] = -9.8f;
+    //pic::Particles particles(1.f, particlePositions, particleVelocities);
+    pic::Particles my_particles(1.f, particlePositions, particleVelocities);
+
+	std::cout<<"particle num: "<<my_particles.num<<std::endl;
+
+	auto start = tnow();
+
+	transferAttributes(my_particles, my_grid);
+
+    auto end = elapsed(start);
+
+	std::cout<<"transferAttributes(my_particles, my_grid) took: "<<end<<std::endl;
+	
+	start = tnow();
+
+	transferAttributes(my_grid, my_particles);
+
+    end = elapsed(start);
+
+	std::cout<<"transferAttributes(my_grid, my_particles) took: "<<end<<std::endl;
+	
+}
+
+TEST_CASE("transferAttributes speed test apic", "[speed][AffineParticles][MacGrid]"){
+    double scale = 1.f/3.f;
+    pic::MacGrid my_grid(Vector3d(0,0,0), 20, 20, 20, scale);
+
+    //pic::FlipMacGrid grid(Vector3d(0,0,0), 20, 20, 20, scale);
+    setDefaultCellStates(my_grid);
+    //initializeLaplacianNBRMat(grid);
+    //
+    std::vector<double> particlePositions = pic::AABCubeUniformParticles(
+        Vector3d(2, 4, 4) * scale, Vector3d(14, 16, 16) * scale, .5f * scale);
+	
+    std::vector<double> particleVelocities(particlePositions.size(), 0);
+
+    for(uint i = 0 ; i < particleVelocities.size()/3 ; i++)
+        particleVelocities[i * 3] = -9.8f;
+    //pic::Particles particles(1.f, particlePositions, particleVelocities);
+    pic::AffineParticles my_particles(1.f, particlePositions, particleVelocities);
+
+	std::cout<<"particle num: "<<my_particles.num<<std::endl;
+
+	auto start = tnow();
+
+	transferAttributes(my_particles, my_grid);
+
+    auto end = elapsed(start);
+
+	std::cout<<"transferAttributes(my_particles, my_grid) took: "<<end<<std::endl;
+
+	start = tnow();
+
+	transferAttributes(my_grid, my_particles);
+
+    end = elapsed(start);
+
+	std::cout<<"transferAttributes(my_grid, my_particles) took: "<<end<<std::endl;
+
+}
 
 /**
 To test:

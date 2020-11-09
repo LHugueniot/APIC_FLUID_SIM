@@ -17,6 +17,14 @@ TEST_CASE("int to uint", "[uint_to_int]"){
 	REQUIRE(std::isnan(-0) == false);
 }
 
+TEST_CASE("gradBilinearInterpolation", "[math][gradientTrilinearInterpolation]"){
+	tuple8d corners = {1.f, 1.f, -.5f, .125f,.125f, .125f, .125f, .125f};
+	Vector3d position(0.5, 0.5, 0.5);
+
+	auto result = gradientTrilinearInterpolation(corners, position);
+	DEBUG_VAR(result);
+}
+
 
 TEST_CASE("getDiff")
 {

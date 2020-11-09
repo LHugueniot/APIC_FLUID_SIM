@@ -74,8 +74,35 @@ struct Particles{
 	std::vector<double> velocities;
 };
 
+
+enum AffineDim{
+	X = 0,
+	Y = 1,
+	Z = 2
+};
+
 struct AffineParticles : Particles{
-	std::vector<double> affine;
+
+	AffineParticles(double const _mass,
+		std::vector<double> _positions,
+		std::vector<double> _velocities) :
+	Particles(_mass, 
+			  _positions,
+			  _velocities),
+	affineVec_x(_positions.size()),
+	affineVec_y(_positions.size()),
+	affineVec_z(_positions.size())
+	{}
+
+	template<AffineDim ad>
+	Vector3dRef getAffine(uint i);
+
+	template<AffineDim ad>
+	Vector3d getAffine(uint i) const;
+
+	std::vector<double> affineVec_x;
+	std::vector<double> affineVec_y;
+	std::vector<double> affineVec_z;
 };
 
 //struct FlipParticles : public Particles{

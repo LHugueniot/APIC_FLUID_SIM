@@ -268,13 +268,13 @@ void initBoundEdgesVertices(MacGridGLData & glData){
     glData.boundEdgesVerticesSize = glData.boundEdgesVertices.size();
 
 
-    double lineStart_i = glData.grid->origin[0] + glData.grid->cellSize;
-    double lineStart_j = glData.grid->origin[1] + glData.grid->cellSize;
-    double lineStart_k = glData.grid->origin[2] + glData.grid->cellSize;
+    double lineStart_i = glData.grid->CBStart[0];
+    double lineStart_j = glData.grid->CBStart[1];
+    double lineStart_k = glData.grid->CBStart[2];
 
-    double lineEnd_i = (glData.grid->cellNum_i - 1) * glData.grid->cellSize + glData.grid->origin[0];
-    double lineEnd_j = (glData.grid->cellNum_j - 1) * glData.grid->cellSize + glData.grid->origin[1];
-    double lineEnd_k = (glData.grid->cellNum_k - 1) * glData.grid->cellSize + glData.grid->origin[2];
+    double lineEnd_i = glData.grid->CBEnd[0];
+    double lineEnd_j = glData.grid->CBEnd[1];
+    double lineEnd_k = glData.grid->CBEnd[2];
 
     for(int i = 0; i < 72/3 ; i++)
     {

@@ -28,9 +28,12 @@ public:
 	MacGrid(Vector3d const & _origin, uint _cellNum_i, uint _cellNum_j,
 		uint _cellNum_k, double _cellSize) :
 	origin(_origin),
-	end(origin[0] + cellSize * (double)(cellNum_i - 1),
-		origin[1] + cellSize * (double)(cellNum_j - 1),
-		origin[2] + cellSize * (double)(cellNum_k - 1)),
+	CBStart(origin[0] + _cellSize * 1.f,
+			origin[1] + _cellSize * 1.f,
+			origin[2] + _cellSize * 1.f),
+	CBEnd(origin[0] + _cellSize * (double)(_cellNum_i - 1),
+		  origin[1] + _cellSize * (double)(_cellNum_j - 1),
+		  origin[2] + _cellSize * (double)(_cellNum_k - 1)),
 	cellSize(_cellSize),
 	invCellSize(1.f/_cellSize),
 	cellNum_i(_cellNum_i),
@@ -47,9 +50,13 @@ public:
 	cellFaceWeightSum_w(cellNum_i * cellNum_j * cellFaceNum_k, 0),
 	cellCenterState(cellNum_i * cellNum_j * cellNum_k, AIR),
 	//laplacianSparseNBR(cellNum_i * cellNum_j * cellNum_k, cellNum_i * cellNum_j * cellNum_k),
-	cellCenterPressure(cellNum_i * cellNum_j * cellNum_k)
+	cellCenterPressure(cellNum_i * cellNum_j * cellNum_k),
+	cellCenterDensity(cellNum_i * cellNum_j * cellNum_k)
 	//cellCenterDivergence(cellNum_i * cellNum_j * cellNum_k, 1)
 	{
+
+		std::cout<<"Collision box Start = "<<CBStart<<std::endl;
+		std::cout<<"Collision box End = "<<CBEnd<<std::endl;
 
 		for (uint i = 0 ; i < cellNum_i ; i += (cellNum_i - 1))
 			for (uint j = 0 ; j < cellNum_j ; j++)
@@ -152,8 +159,13 @@ public:
 	//Grid minimum corner
 	Vector3d const origin;
 
+	//Collision box start
+	Vector3d const CBStart;
+
+	//Collision box end
+	Vector3d const CBEnd;
 	//Grid top corner
-	Vector3d const end;
+	//Vector3d const end;
 
 	//For each cell the edges are all the same length
 	double const cellSize;
@@ -188,6 +200,7 @@ public:
 	//Pressure stored at the center of each cell
 	//SparseVector<double> cellCenterPressure;
 	std::vector<double> cellCenterPressure;
+	std::vector<uint> cellCenterDensity;
 
 	//Divergence stored at the center of each cell
 	//SparseMatrix<double> cellCenterDivergence;

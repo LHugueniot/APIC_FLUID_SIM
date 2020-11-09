@@ -62,14 +62,10 @@ double calculateSubStep(MacGrid const & grid, double timeStep);
 
 void enforceBoundaryVelocities(MacGrid & grid);
 void enforceBoundaryPressure(MacGrid & grid);
-void enforceBoundary(MacGrid & grid);
 void extrapolateBoundaryVelocities(MacGrid & grid);
 
 void applyExternalForces(MacGrid & grid, double timeStep);
 
-void initializeLaplacianNBRMat(MacGrid & grid);
-
-void initializeCellCenterDivergence(MacGrid & grid, double timeStep);
 void applyPressureForces(MacGrid & grid, double timeStep);
 void updateParticles(Particles & particles, double subStep);
 
@@ -90,12 +86,12 @@ void transferAttributes(FlipMacGrid const & grid, Particles & particles);
 void advanceStep(Particles & particles, FlipMacGrid & grid, double timeStep);
 
 //=============================================================================================
-//=====================================FLIP FUNCTIONS==========================================
+//=====================================APIC FUNCTIONS==========================================
 //=============================================================================================
 
 void transferAttributes(AffineParticles const & particles, MacGrid & grid);
 void transferAttributes(MacGrid const & grid, AffineParticles & particles);
-void advanceStep(Particles & particles, FlipMacGrid & grid, double timeStep);
+void advanceStep(AffineParticles & particles, MacGrid & grid, double timeStep);
 
 
 //template<MacGrid::FaceDim F, typename T>

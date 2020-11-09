@@ -1,7 +1,6 @@
 #include "MacGrid.h"
 
-namespace pic
-{
+namespace pic{
 
 //Get position relative to grid origin and grid scale
 Vector3d MacGrid::gridSpacePos(Vector3d const & worldSpacePos) const{
