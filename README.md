@@ -2,7 +2,7 @@
 
 [![Watch the video](APIC_WAVE.PNG)](https://www.youtube.com/watch?v=wmwfUij0SW0)
 
-## Intro:
+## Overview:
 
 APIC_FLUID_SIM is a fluid simulation written by me as my final major university project in C++. The fluid sim methods implemented are:
 
@@ -33,7 +33,7 @@ Build system used is BAZEL.
 	$ cd APIC_FLUID_SIM/pic-core
 	$ bazel build //:pic_core
 
-## Running
+## Running:
 
 	$ cd APIC_FLUID_SIM/point-viewer
 	$ bazel run //:pv
